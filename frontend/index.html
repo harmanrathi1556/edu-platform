@@ -41,11 +41,67 @@
         <div class="glass p-8 rounded-3xl w-full max-w-md relative">
             <button onclick="hideLogin()" class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
             <h2 class="text-3xl font-bold mb-6 text-center">Welcome Back</h2>
-            <input type="email" placeholder="Email" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl mb-4 focus:outline-none focus:border-blue-500">
-            <input type="password" placeholder="Password" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl mb-6 focus:outline-none focus:border-blue-500">
-            <button class="w-full bg-blue-600 py-4 rounded-xl font-bold hover:bg-blue-700 transition">Sign In</button>
+            
+            <input id="email" type="email" placeholder="Email" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl mb-4 focus:outline-none focus:border-blue-500 text-white">
+            
+            <input id="password" type="password" placeholder="Password" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl mb-6 focus:outline-none focus:border-blue-500 text-white">
+            
+            <button id="authBtn" onclick="handleAuth()" class="w-full bg-blue-600 py-4 rounded-xl font-bold hover:bg-blue-700 transition">Sign In</button>
         </div>
     </div>
+
+   <script>
+        const BACKEND_URL = "https://edu-platform-sqty.onrender.com";
+
+        function showLogin() { 
+            document.getElementById('loginModal').classList.remove('hidden'); 
+        }
+        function hideLogin() { 
+            document.getElementById('loginModal').classList.add('hidden'); 
+        }
+
+        async function handleAuth() {
+            // These lines now work because the IDs exist above
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('authBtn');
+            
+            if(!email || !password) {
+                alert("Please fill in all fields");
+                return;
+            }
+
+            btn.innerText = "Processing...";
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        email: email, 
+                        password: password, 
+                        full_name: "New User" 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.status === 201) {
+                    alert("Success! Your account is created. Please wait for Admin (You) to approve it.");
+                    hideLogin();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server is starting up. Please wait 30 seconds and try again.");
+            } finally {
+                btn.innerText = "Sign In";
+            }
+        }
+    </script>
+</body>
+</html>
 
    <script>
         // Your specific Render Backend URL
