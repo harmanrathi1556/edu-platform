@@ -3,20 +3,27 @@ import google.generativeai as genai
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from supabase import create_client, Client
-from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
 
-# --- DATABASE CONNECTION (SUPABASE) ---
+# --- SECURE DATABASE CONNECTION ---
+# This now matches the name in your Render screenshot perfectly
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# --- AI BRAIN SETUP (GEMINI PRO) ---
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-ai_model = genai.GenerativeModel('gemini-1.5-flash')
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("❌ ERROR: Keys not found. Check Render Env for SUPABASE_URL and SUPABASE_KEY")
+    supabase = None
+else:
+    # Initialize Supabase
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# --- AI BRAIN SETUP ---
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
+if GEMINI_KEY:
+    genai.configure(api_key=GEMINI_KEY)
+    ai_model = genai.GenerativeModel('gemini-1.5-flash')
 # --- UNIVERSAL SECURITY ENGINE (FEATURE #2 & #17) ---
 def verify_role(token, allowed_roles):
     """
