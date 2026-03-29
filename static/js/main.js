@@ -1,5 +1,5 @@
-function askAI() {
-    let question = document.getElementById("question").value;
+function askGlobalAI() {
+    let question = document.getElementById("global-question").value;
 
     fetch("/ask-ai", {
         method: "POST",
@@ -10,6 +10,6 @@ function askAI() {
     })
     .then(res => res.json())
     .then(data => {
-        document.getElementById("answer").innerText = data.answer;
+        document.getElementById("global-answer").innerText = data.answer;
     });
 }
