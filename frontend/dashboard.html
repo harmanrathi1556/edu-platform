@@ -2,77 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edu-AI | Smart Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edu-AI | Smart Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .stat-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
-        .stat-card:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.05); }
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .stat-card { background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
+        .stat-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
+        .btn-primary { background: #2563eb; transition: 0.3s; box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3); }
+        .btn-primary:hover { background: #1d4ed8; transform: scale(1.02); }
     </style>
 </head>
 <body class="flex min-h-screen">
 
-    <aside class="w-64 bg-black/50 border-r border-white/5 p-6 flex flex-col">
-        <div class="text-2xl font-bold mb-10 text-blue-500">EDU-AI</div>
-        <nav class="space-y-2 flex-1">
-            <div onclick="location.reload()" class="p-3 bg-blue-600 rounded-lg cursor-pointer">Overview</div>
-            <div onclick="showSection('institutes')" class="p-3 hover:bg-white/5 rounded-lg cursor-pointer">Institutes</div>
-            <div onclick="showSection('batches')" class="p-3 hover:bg-white/5 rounded-lg cursor-pointer">Batches</div>
-            <div onclick="showPayment()" class="p-3 text-yellow-500 font-bold cursor-pointer">💳 Pay / Buy</div>
-        </nav>
-    </aside>
-
-    <main class="flex-1 p-10">
-        <div id="overview-section">
-            <h1 class="text-3xl font-bold mb-8">Welcome, <span id="userNameDisplay">User</span></h1>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="stat-card p-6 rounded-2xl">
-                    <p class="text-gray-400">Total Users</p>
-                    <p id="totalUsers" class="text-3xl font-bold">0</p>
-                </div>
-                <div class="stat-card p-6 rounded-2xl">
-                    <p class="text-gray-400">Revenue</p>
-                    <p id="totalRevenue" class="text-3xl font-bold text-green-400">₹0</p>
-                </div>
-                <div class="stat-card p-6 rounded-2xl">
-                    <p class="text-gray-400">Your XP</p>
-                    <p id="userXP" class="text-3xl font-bold text-yellow-500">0</p>
-                </div>
+    <aside class="w-72 sidebar p-8 flex flex-col hidden lg:flex">
+        <div class="text-3xl font-black mb-12 tracking-tighter text-blue-500">EDU<span class="text-white">AI</span></div>
+        <nav class="space-y-4 flex-1">
+            <div onclick="location.reload()" class="flex items-center gap-3 p-4 bg-blue-600/10 text-blue-400 rounded-2xl cursor-pointer font-bold">
+                <span>📊</span> Overview
             </div>
-
-            <div class="glass p-8 rounded-3xl">
-                <h2 class="text-2xl font-bold mb-4">🤖 AI Doubt Solver</h2>
-                <div class="flex flex-col gap-4">
-                    <textarea id="aiQuestion" placeholder="Type your doubt here..." class="w-full bg-white/5 p-4 rounded-xl border border-white/10 h-32"></textarea>
-                    
-                    <div class="flex items-center gap-4">
-                        <label class="cursor-pointer bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20">
-                            📷 Add Image
-                            <input type="file" id="aiImage" class="hidden" onchange="alert('Image attached!')">
-                        </label>
-                        <button onclick="askAI()" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold hover:bg-blue-700">Solve with AI</button>
-                    </div>
-                </div>
-                <div id="aiResponse" class="mt-6 p-6 bg-blue-500/10 rounded-2xl hidden border border-blue-500/20"></div>
+            <div onclick="alert('Institutes System Active')" class="flex items-center gap-3 p-4 hover:bg-white/5 rounded-2xl cursor-pointer transition text-gray-400">
+                <span>🏫</span> Institutes
+            </div>
+            <div onclick="alert('Batch System Active')" class="flex items-center gap-3 p-4 hover:bg-white/5 rounded-2xl cursor-pointer transition text-gray-400">
+                <span>📚</span> My Batches
+            </div>
+            <div onclick="showPayment()" class="flex items-center gap-3 p-4 hover:bg-yellow-500/10 text-yellow-500 rounded-2xl cursor-pointer transition font-bold border border-transparent hover:border-yellow-500/20">
+                <span>💳</span> Pay Fees / Buy
+            </div>
+        </nav>
+        
+        <div class="mt-auto p-5 glass rounded-3xl border border-blue-500/20">
+            <p class="text-xs text-blue-400 font-bold uppercase tracking-widest mb-1">Current Level</p>
+            <p id="userLevel" class="text-xl font-black text-white">Lvl 1 Rookie</p>
+            <div class="w-full bg-white/10 h-1.5 rounded-full mt-3 overflow-hidden">
+                <div class="bg-blue-500 h-full w-1/3"></div>
             </div>
         </div>
-    </main>
+    </aside>
 
-    <div id="paymentModal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-6 z-50">
-        <div class="glass p-8 rounded-3xl w-full max-w-md relative">
-            <button onclick="hidePayment()" class="absolute top-4 right-4 text-2xl">✕</button>
-            <h2 class="text-2xl font-bold mb-4">Payment Portal</h2>
+    <main class="flex-1 p-6 md:p-12 overflow-y-auto">
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-4xl font-black tracking-tight">System <span class="text-blue-500">Overview</span></h1>
+                <p class="text-gray-500 mt-1">Real-time sync with Render Cloud</p>
+            </div>
+            <div class="flex items-center gap-4 glass py-2 px-4 rounded-full border-white/10">
+                <div class="text-right">
+                    <p id="userNameDisplay" class="font-bold text-sm">Harman Rathi</p>
+                    <p id="userRoleDisplay" class="text-[10px] text-blue-400 uppercase font-black">Super Admin</p>
+                </div>
+                <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-full"></div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div class="stat-card p-6 rounded-3xl">
+                <p class="text-gray-500 text-xs font-bold uppercase">Total Revenue</p>
+                <p id="totalRevenue" class="text-3xl font-black mt-2 text-green-400">₹0</p>
+            </div>
+            <div class="stat-card p-6 rounded-3xl">
+                <p class="text-gray-500 text-xs font-bold uppercase">Users Active</p>
+                <p id="totalUsers" class="text-3xl font-black mt-2">0</p>
+            </div>
+            <div onclick="window.location.href='exam.html'" class="stat-card p-6 rounded-3xl cursor-pointer border-blue-500/30 bg-blue-500/5">
+                <p class="text-blue-400 text-xs font-bold uppercase">Active Exams</p>
+                <p class="text-3xl font-black mt-2">1 Available</p>
+            </div>
+            <div class="stat-card p-6 rounded-3xl border-yellow-500/30">
+                <p class="text-yellow-500 text-xs font-bold uppercase">Your XP</p>
+                <p id="userXP" class="text-3xl font-black mt-2 text-yellow-500">0</p>
+            </div>
+        </div>
+
+        <section class="glass p-8 rounded-[2rem] border-blue-500/20 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-8 opacity-10 text-8xl">🤖</div>
+            <h2 class="text-2xl font-black mb-6 flex items-center gap-3">
+                <span class="bg-blue-600 p-2 rounded-lg text-sm">AI</span> Doubt Solver
+            </h2>
             
-            <div class="border-2 border-dashed border-white/20 rounded-2xl p-4 mb-6 text-center">
-                <p class="text-xs text-gray-400 mb-2 font-bold">YOUR QR CODE GOES HERE</p>
-                <img id="myQR" src="https://via.placeholder.com/200?text=Upload+Your+QR+to+GitHub" class="w-40 h-40 mx-auto rounded-lg">
+            <div class="space-y-4">
+                <textarea id="aiQuestion" placeholder="Explain the Heisenberg Uncertainty Principle..." 
+                    class="w-full bg-white/5 border border-white/10 p-6 rounded-2xl focus:outline-none focus:border-blue-500 transition h-32 text-lg"></textarea>
+                
+                <div class="flex flex-wrap gap-4">
+                    <label class="flex-1 md:flex-none cursor-pointer bg-white/5 border border-white/10 px-6 py-4 rounded-2xl hover:bg-white/10 transition flex items-center justify-center gap-2">
+                        <span>📷</span> <span class="text-sm font-bold">Scan Problem</span>
+                        <input type="file" id="aiImage" class="hidden" onchange="alert('Image analyzed! Ready to solve.')">
+                    </label>
+                    <button onclick="askAI()" class="flex-[2] btn-primary py-4 rounded-2xl font-black text-lg">
+                        Solve with AI Brain
+                    </button>
+                </div>
             </div>
 
-            <input id="payAmount" type="number" placeholder="Amount" class="w-full bg-white/5 p-4 rounded-xl mb-4">
-            <input id="qrUrl" type="text" placeholder="Paste Screenshot Link" class="w-full bg-white/5 p-4 rounded-xl mb-6">
-            <button onclick="submitPayment()" class="w-full bg-blue-600 py-4 rounded-xl font-bold">Submit Payment</button>
+            <div id="aiResponse" class="mt-8 p-6 bg-blue-600/5 border border-blue-500/20 rounded-2xl hidden text-blue-100 leading-relaxed">
+                </div>
+        </section>
+    </main>
+
+    <div id="paymentModal" class="fixed inset-0 bg-black/95 backdrop-blur-xl hidden flex items-center justify-center p-6 z-50">
+        <div class="glass p-10 rounded-[2.5rem] w-full max-w-lg border-white/10 relative">
+            <button onclick="hidePayment()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-3xl">✕</button>
+            <h2 class="text-3xl font-black mb-2">Secure <span class="text-blue-500">Payment</span></h2>
+            <p class="text-gray-500 text-sm mb-8 italic">Scan QR, pay, and upload your screenshot.</p>
+
+            <div class="bg-white p-4 rounded-3xl mb-8 w-48 h-48 mx-auto shadow-2xl shadow-blue-500/20">
+                <img id="myQR" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY_HARMAN" alt="Payment QR" class="w-full h-full rounded-xl">
+            </div>
+
+            <div class="space-y-4">
+                <input id="payAmount" type="number" placeholder="Enter Amount (INR)" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-blue-500">
+                <input id="qrUrl" type="text" placeholder="Screenshot Link (ImgBB/Direct Link)" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-blue-500">
+                <select id="selectedBatch" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-gray-400 outline-none">
+                    <option value="batch_jee">JEE Star Batch</option>
+                    <option value="batch_neet">NEET Pro Batch</option>
+                </select>
+                <button onclick="submitPayment()" class="w-full btn-primary py-5 rounded-2xl font-black text-xl mt-4">Submit for Verification</button>
+            </div>
         </div>
     </div>
 
