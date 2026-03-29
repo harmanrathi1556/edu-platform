@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 class="text-3xl font-bold text-cyan-400 mb-6">
+    ⚡ Super Admin Dashboard
+</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- Total Users -->
+    <div class="glass p-6 glow">
+        <h2 class="text-xl">👥 Users</h2>
+        <p class="text-3xl mt-2">{{ total_users }}</p>
+    </div>
+
+    <!-- Institutes -->
+    <div class="glass p-6 glow">
+        <h2 class="text-xl">🏫 Institutes</h2>
+        <p class="text-3xl mt-2">{{ total_institutes }}</p>
+    </div>
+
+    <!-- Revenue -->
+    <div class="glass p-6 glow">
+        <h2 class="text-xl">💰 Revenue</h2>
+        <p class="text-3xl mt-2">₹ {{ total_revenue }}</p>
+    </div>
+
+</div>
+
+<!-- Logout -->
+<div class="mt-8">
+    <a href="/logout" class="bg-red-500 px-4 py-2 rounded glow">Logout</a>
+</div>
+
+{% endblock %}
