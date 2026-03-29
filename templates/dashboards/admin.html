@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="p-6">
+
+    <!-- Title -->
+    <h1 class="text-3xl font-bold text-purple-400 mb-6">
+        🏫 Institute Admin Dashboard
+    </h1>
+
+    <!-- ========================= -->
+    <!-- 👨‍🏫 CREATE TEACHER -->
+    <!-- ========================= -->
+    <div class="glass p-6 mb-6">
+        <h2 class="text-xl mb-4 text-purple-400">➕ Create Teacher</h2>
+
+        <form method="POST" action="/create_teacher" class="grid gap-4">
+            <input type="text" name="name" placeholder="Teacher Name" required
+                class="p-2 rounded bg-gray-800 text-white">
+
+            <input type="email" name="email" placeholder="Teacher Email" required
+                class="p-2 rounded bg-gray-800 text-white">
+
+            <input type="password" name="password" placeholder="Password" required
+                class="p-2 rounded bg-gray-800 text-white">
+
+            <button class="bg-purple-600 px-4 py-2 rounded glow hover:bg-purple-700">
+                Create Teacher
+            </button>
+        </form>
+    </div>
+
+    <!-- ========================= -->
+    <!-- 🎓 CREATE STUDENT -->
+    <!-- ========================= -->
+    <div class="glass p-6 mb-6">
+        <h2 class="text-xl mb-4 text-purple-400">➕ Create Student</h2>
+
+        <form method="POST" action="/create_student" class="grid gap-4">
+            <input type="text" name="name" placeholder="Student Name" required
+                class="p-2 rounded bg-gray-800 text-white">
+
+            <input type="email" name="email" placeholder="Student Email" required
+                class="p-2 rounded bg-gray-800 text-white">
+
+            <input type="password" name="password" placeholder="Password" required
+                class="p-2 rounded bg-gray-800 text-white">
+
+            <button class="bg-purple-600 px-4 py-2 rounded glow hover:bg-purple-700">
+                Create Student
+            </button>
+        </form>
+    </div>
+
+    <!-- ========================= -->
+    <!-- 👨‍🏫 TEACHERS LIST -->
+    <!-- ========================= -->
+    <div class="glass p-6 mb-6">
+        <h2 class="text-xl mb-4 text-purple-400">👨‍🏫 Teachers</h2>
+
+        {% if teachers %}
+            {% for t in teachers %}
+                <div class="flex justify-between border-b border-gray-700 py-2">
+                    <span>{{ t.name }} ({{ t.email }})</span>
+                    <span class="text-blue-400">Teacher</span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-400">No teachers found</p>
+        {% endif %}
+    </div>
+
+    <!-- ========================= -->
+    <!-- 🎓 STUDENTS LIST -->
+    <!-- ========================= -->
+    <div class="glass p-6 mb-6">
+        <h2 class="text-xl mb-4 text-purple-400">🎓 Students</h2>
+
+        {% if students %}
+            {% for s in students %}
+                <div class="flex justify-between border-b border-gray-700 py-2">
+                    <span>{{ s.name }} ({{ s.email }})</span>
+                    <span class="text-green-400">Student</span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-400">No students found</p>
+        {% endif %}
+    </div>
+
+    <!-- ========================= -->
+    <!-- 💳 PAYMENTS -->
+    <!-- ========================= -->
+    <div class="glass p-6 mb-6">
+        <h2 class="text-xl mb-4 text-purple-400">💳 Payments</h2>
+
+        {% if payments %}
+            {% for p in payments %}
+                <div class="flex justify-between items-center border-b border-gray-700 py-2">
+
+                    <span>
+                        Student ID: {{ p.student_id }}
+                    </span>
+
+                    <span class="text-yellow-400">
+                        {{ p.status }}
+                    </span>
+
+                    <div class="flex gap-2">
+                        <a href="/approve_payment/{{ p.id }}"
+                           class="bg-green-500 px-3 py-1 rounded text-sm">
+                           Approve
+                        </a>
+
+                        <a href="/reject_payment/{{ p.id }}"
+                           class="bg-red-500 px-3 py-1 rounded text-sm">
+                           Reject
+                        </a>
+                    </div>
+
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-400">No payments found</p>
+        {% endif %}
+    </div>
+
+    <!-- ========================= -->
+    <!-- 🚪 LOGOUT -->
+    <!-- ========================= -->
+    <div class="mt-6">
+        <a href="/logout"
+           class="bg-red-500 px-4 py-2 rounded glow hover:bg-red-600">
+            Logout
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}
