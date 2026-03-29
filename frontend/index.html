@@ -47,9 +47,59 @@
         </div>
     </div>
 
-    <script>
-        function showLogin() { document.getElementById('loginModal').classList.remove('hidden'); }
-        function hideLogin() { document.getElementById('loginModal').classList.add('hidden'); }
+   <script>
+        // Your specific Render Backend URL
+        const BACKEND_URL = "https://edu-platform-sqty.onrender.com";
+
+        // Show/Hide Modal Logic
+        function showLogin() { 
+            document.getElementById('loginModal').classList.remove('hidden'); 
+        }
+        function hideLogin() { 
+            document.getElementById('loginModal').classList.add('hidden'); 
+        }
+
+        // --- FEATURE #2: LOGIN/REGISTER LOGIC ---
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('authBtn');
+            
+            // Basic check to make sure fields aren't empty
+            if(!email || !password) {
+                alert("Please fill in all fields");
+                return;
+            }
+
+            btn.innerText = "Processing...";
+            
+            try {
+                // This talks to the /register route we created in app.py
+                const response = await fetch(`${BACKEND_URL}/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        email: email, 
+                        password: password, 
+                        full_name: "New User" 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.status === 201) {
+                    alert("Success! Your account is created. Please wait for Admin (You) to approve it.");
+                    hideLogin();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server is starting up. Please wait 30 seconds and try again.");
+            } finally {
+                btn.innerText = "Sign In";
+            }
+        }
     </script>
 </body>
 </html>
