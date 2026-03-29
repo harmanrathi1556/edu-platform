@@ -2,6 +2,12 @@
 
 {% block content %}
 
+<!-- Background Animation -->
+<div class="absolute inset-0 -z-10 overflow-hidden">
+    <div class="absolute w-72 h-72 bg-cyan-500 opacity-20 rounded-full blur-3xl top-10 left-10 animate-pulse"></div>
+    <div class="absolute w-72 h-72 bg-purple-500 opacity-20 rounded-full blur-3xl bottom-10 right-10 animate-pulse"></div>
+</div>
+
 <div class="flex items-center justify-center min-h-screen">
 
     <!-- Login Card -->
@@ -11,8 +17,15 @@
             🔐 Login Portal
         </h2>
 
+        <!-- Error Message -->
+        {% if error %}
+        <div class="bg-red-500/20 text-red-400 p-2 rounded mb-4 text-center">
+            {{ error }}
+        </div>
+        {% endif %}
+
         <!-- Form -->
-        <form method="POST" action="/login">
+        <form method="POST" action="/login" id="loginForm">
 
             <!-- Email -->
             <div class="mb-4">
@@ -22,10 +35,16 @@
             </div>
 
             <!-- Password -->
-            <div class="mb-4">
+            <div class="mb-4 relative">
                 <label class="block mb-1 text-sm">Password</label>
-                <input type="password" name="password" required
+                <input type="password" name="password" id="password" required
                     class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none transition">
+
+                <!-- Toggle Button -->
+                <span onclick="togglePassword()"
+                    class="absolute right-3 top-10 cursor-pointer text-gray-400 hover:text-cyan-400">
+                    👁
+                </span>
             </div>
 
             <!-- Role Selection -->
@@ -43,7 +62,7 @@
             </div>
 
             <!-- Button -->
-            <button type="submit"
+            <button type="submit" id="loginBtn"
                 class="w-full bg-cyan-500 hover:bg-cyan-400 p-3 rounded font-bold transition glow">
                 Login
             </button>
@@ -59,5 +78,20 @@
     </div>
 
 </div>
+
+<!-- JS -->
+<script>
+    function togglePassword() {
+        const password = document.getElementById("password");
+        password.type = password.type === "password" ? "text" : "password";
+    }
+
+    // Loading animation
+    document.getElementById("loginForm").addEventListener("submit", function () {
+        const btn = document.getElementById("loginBtn");
+        btn.innerText = "Logging in...";
+        btn.disabled = true;
+    });
+</script>
 
 {% endblock %}
