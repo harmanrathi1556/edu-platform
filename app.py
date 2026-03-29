@@ -86,5 +86,10 @@ def internal_error(error):
     flash('Server error occurred. Please try again.', 'error')
     return redirect(url_for('auth.login'))
 
+# 🔥 RENDER PORT BINDING (REQUIRED!)
+if 'PORT' in os.environ:
+    port = int(os.environ['PORT'])
+    app.run(host='0.0.0.0', port=port, debug=False)
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
