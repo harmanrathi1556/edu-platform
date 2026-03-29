@@ -55,6 +55,30 @@ def login():
     return render_template("login.html")
 
 # =========================
+# 👑 SUPER ADMIN DASHBOARD
+# =========================
+@app.route("/superadmin")
+def superadmin():
+    if "user_id" not in session or session.get("role") != "superadmin":
+        return redirect("/login")
+
+    # Fetch stats
+    users = supabase.table("users").select("*").execute()
+    institutes = supabase.table("institutes").select("*").execute()
+    payments = supabase.table("payments").select("*").execute()
+
+    total_users = len(users.data)
+    total_institutes = len(institutes.data)
+    total_revenue = sum([p["amount"] or 0 for p in payments.data]) if payments.data else 0
+
+    return render_template(
+        "dashboards/superadmin.html",
+        total_users=total_users,
+        total_institutes=total_institutes,
+        total_revenue=total_revenue
+    )
+
+# =========================
 # 🚀 REGISTER PAGE
 # =========================
 @app.route("/register", methods=["GET", "POST"])
