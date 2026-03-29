@@ -1,396 +1,316 @@
 import os
+import google.generativeai as genai
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from supabase_config import supabase
+from supabase import create_client, Client
 from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 
-# Allow all origins for testing; later we can restrict to your Vercel URL
-CORS(app, resources={r"/*": {"origins": "*"}})
+# --- DATABASE CONNECTION (SUPABASE) ---
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# --- HELPER: ROLE CHECKER ---
-def verify_role(token, required_roles):
+# --- AI BRAIN SETUP (GEMINI PRO) ---
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+ai_model = genai.GenerativeModel('gemini-1.5-flash')
+
+# --- UNIVERSAL SECURITY ENGINE (FEATURE #2 & #17) ---
+def verify_role(token, allowed_roles):
+    """
+    Checks the JWT token and verifies if the user has the 
+    required permissions (Super Admin bypasses all checks).
+    """
     try:
-        user = supabase.auth.get_user(token)
-        user_id = user.user.id
-        profile = supabase.table("profiles").select("*").eq("id", user_id).single().execute()
-        if profile.data and profile.data['role'] in required_roles:
-            return profile.data
+        if not token: return None
+        # Clean the token if "Bearer " is included
+        jwt = token.replace("Bearer ", "")
+        user = supabase.auth.get_user(jwt)
+        
+        if user:
+            # Fetch profile for role-based access
+            profile = supabase.table("profiles").select("*").eq("id", user.user.id).single().execute()
+            user_data = profile.data
+            
+            # GOD MODE: Super Admin can access EVERYTHING
+            if user_data['role'] == 'super_admin':
+                return user_data
+            
+            # Check if user role is in the allowed list for this route
+            if user_data['role'] in allowed_roles:
+                return user_data
         return None
-    except:
+    except Exception as e:
+        print(f"Security Error: {str(e)}")
         return None
 
-# --- FEATURE #2 & #18: REGISTRATION & USER APPROVAL ---
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({"status": "EDU-AI Cloud Core Online", "version": "2.0.1"}), 200
+
+# --- PART 2 WILL HANDLE AUTH & REGISTRATION ---
+# --- FEATURE #1: UNIVERSAL AUTH & REGISTRATION (REPLACING PREVIOUS AUTH) ---
+
 @app.route('/register', methods=['POST'])
 def register():
+    """
+    Handles both New Signups and Existing Logins.
+    Logic: If user exists, try to log in. If not, create them.
+    """
     data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({"error": "Email and password required"}), 400
+
     try:
-        # Create Auth User
-        auth_res = supabase.auth.sign_up({
-            "email": data['email'],
-            "password": data['password']
-        })
+        # Try logging in first (to see if they exist)
+        res = supabase.auth.sign_in_with_password({"email": email, "password": password})
         
-        if auth_res.user:
-            # Create Profile with 'Pending' status
-            supabase.table("profiles").insert({
-                "id": auth_res.user.id,
-                "full_name": data.get('full_name', 'New User'),
-                "role": data.get('role', 'student'),
-                "is_approved": False, # Requires Admin Approval (Feature #18)
+        # If login successful, get their profile/role
+        profile = supabase.table("profiles").select("*").eq("id", res.user.id).single().execute()
+        user_data = profile.data
+
+        # Check if user is approved (Feature #18)
+        if not user_data.get('is_approved') and user_data['role'] != 'super_admin':
+            return jsonify({"error": "Account pending Admin approval. Contact your Institute."}), 403
+
+        return jsonify({
+            "message": "Login successful",
+            "token": res.session.access_token,
+            "role": user_data['role'],
+            "full_name": user_data['full_name']
+        }), 200
+
+    except Exception:
+        # If login fails, try to Register them as a new user
+        try:
+            signup_res = supabase.auth.sign_up({"email": email, "password": password})
+            
+            # Default Role: Student (Feature #1)
+            # Default Status: Not Approved (Feature #18)
+            new_profile = {
+                "id": signup_res.user.id,
+                "email": email,
+                "full_name": email.split('@')[0], # Temp name from email
+                "role": "student",
+                "is_approved": False,
                 "xp": 0,
                 "level": 1
-            }).execute()
-            return jsonify({"message": "User registered. Pending approval."}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+            }
+            
+            supabase.table("profiles").insert(new_profile).execute()
+            
+            return jsonify({
+                "message": "Registration successful. Awaiting Admin Approval.",
+                "status": "pending"
+            }), 201
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+
+# --- FEATURE #18: ADMIN APPROVAL SYSTEM ---
 
 @app.route('/admin/approve-user', methods=['POST'])
 def approve_user():
+    """
+    Only Super Admin or Institute Admin can approve new students.
+    """
     token = request.headers.get("Authorization")
     admin = verify_role(token, ['super_admin', 'inst_admin'])
     if not admin: return jsonify({"error": "Unauthorized"}), 403
+
+    target_user_id = request.json.get('user_id')
     
-    user_id = request.json.get('user_id')
-    supabase.table("profiles").update({"is_approved": True}).eq("id", user_id).execute()
+    # Update user status to Approved
+    supabase.table("profiles").update({"is_approved": True}).eq("id", target_user_id).execute()
+    
     return jsonify({"message": "User approved successfully"}), 200
 
-# --- FEATURE #19: ANALYTICS DASHBOARD (PARTIAL) ---
-@app.route('/admin/stats', methods=['GET'])
-def get_stats():
-    # Only Admin can see total revenue and users
-    token = request.headers.get("Authorization")
-    if not verify_role(token, ['super_admin', 'inst_admin']):
-        return jsonify({"error": "Unauthorized"}), 403
-
-    users_count = supabase.table("profiles").select("id", count="exact").execute()
-    payments = supabase.table("payments").select("amount").eq("status", "approved").execute()
-    total_revenue = sum(p['amount'] for p in payments.data) if payments.data else 0
-    
-    return jsonify({
-        "total_users": users_count.count,
-        "total_revenue": total_revenue,
-        "active_institutes": 1 # Placeholder for now
-    })
-
-# [CONTINGENCY FOR PART 2]
-# --- FEATURE #6 & #7: BATCHES & QR PAYMENT SYSTEM ---
-
-@app.route('/batches', methods=['GET'])
-def get_batches():
-    """Lists all available batches for students to join."""
-    batches = supabase.table("batches").select("*, institutes(name)").execute()
-    return jsonify(batches.data), 200
+# --- PART 3 WILL HANDLE BATCHES, PAYMENTS & AI DOUBT SOLVING ---
+# --- FEATURE #6 & #8: BATCH & PAYMENT SYSTEM ---
 
 @app.route('/payment/submit', methods=['POST'])
 def submit_payment():
-    """Feature #7: Student uploads QR screenshot for a batch."""
+    """
+    Feature #7: Students upload their QR screenshot link and amount.
+    Status remains 'pending' until Admin approves.
+    """
     token = request.headers.get("Authorization")
     user = verify_role(token, ['student'])
     if not user: return jsonify({"error": "Unauthorized"}), 403
 
     data = request.json
-    # In a real app, you'd use a file upload; here we store the URL of the screenshot
     payment_data = {
         "user_id": user['id'],
-        "batch_id": data['batch_id'],
-        "amount": data['amount'],
-        "screenshot_url": data['screenshot_url'],
-        "coupon_code": data.get('coupon_code'),
-        "status": "pending"
+        "amount": data.get('amount'),
+        "screenshot_url": data.get('screenshot_url'),
+        "batch_id": data.get('batch_id'),
+        "status": "pending",
+        "coupon_used": data.get('coupon_code', None),
+        "created_at": datetime.now().isoformat()
     }
+
+    # Log payment request in Supabase
+    supabase.table("payments").insert(payment_data).execute()
     
-    res = supabase.table("payments").insert(payment_data).execute()
-    return jsonify({"message": "Payment submitted. Awaiting verification.", "id": res.data[0]['id']}), 201
+    return jsonify({"message": "Payment submitted. Awaiting Admin verification."}), 201
 
 @app.route('/admin/approve-payment', methods=['POST'])
 def approve_payment():
-    """Feature #18 & #20: Admin approves payment -> Auto Enroll student."""
+    """
+    Feature #20: Auto-enrollment after payment approval.
+    """
     token = request.headers.get("Authorization")
-    if not verify_role(token, ['super_admin', 'inst_admin']):
-        return jsonify({"error": "Unauthorized"}), 403
+    admin = verify_role(token, ['super_admin', 'inst_admin'])
+    if not admin: return jsonify({"error": "Unauthorized"}), 403
 
     payment_id = request.json.get('payment_id')
     
-    # 1. Update Payment Status
-    payment = supabase.table("payments").update({"status": "approved"}).eq("id", payment_id).execute()
-    
-    if payment.data:
-        p = payment.data[0]
-        # 2. FEATURE #20: SMART AUTOMATION - Auto Enroll in Batch
-        # We assume a 'batch_members' table exists to track enrollment
-        supabase.table("profiles").update({"batch_id": p['batch_id']}).eq("id", p['user_id']).execute()
-        
-        # 3. FEATURE #5: GAMIFICATION - Award XP for buying a course
-        current_user = supabase.table("profiles").select("xp").eq("id", p['user_id']).single().execute()
-        new_xp = (current_user.data['xp'] or 0) + 100 # Award 100 XP
-        supabase.table("profiles").update({"xp": new_xp}).eq("id", p['user_id']).execute()
+    # 1. Get Payment Details
+    pay_res = supabase.table("payments").select("*").eq("id", payment_id).single().execute()
+    pay_data = pay_res.data
 
-        return jsonify({"message": "Payment approved. Student enrolled & XP awarded!"}), 200
-    
-    return jsonify({"error": "Payment record not found"}), 404
+    # 2. Approve Payment
+    supabase.table("payments").update({"status": "approved"}).eq("id", payment_id).execute()
 
-# --- FEATURE #8: COUPON SYSTEM ---
-@app.route('/coupons/validate', methods=['POST'])
-def validate_coupon():
-    code = request.json.get('code')
-    # Simple logic: if code is 'FIRST50', give 50% off
-    if code == "FIRST50":
-        return jsonify({"discount_percent": 50, "valid": True})
-    return jsonify({"valid": False, "error": "Invalid Coupon"}), 400
-    # --- FEATURE #12: LMS (COURSE & LESSON MANAGEMENT) ---
-
-@app.route('/courses', methods=['GET'])
-def get_courses():
-    """Fetches all courses available in the institute."""
-    courses = supabase.table("courses").select("*, lessons(*)").execute()
-    return jsonify(courses.data), 200
-
-@app.route('/lesson/complete', methods=['POST'])
-def complete_lesson():
-    """Feature #12 & #5: Track progress and award XP for learning."""
-    token = request.headers.get("Authorization")
-    user = verify_role(token, ['student'])
-    if not user: return jsonify({"error": "Unauthorized"}), 403
-
-    lesson_id = request.json.get('lesson_id')
-    
-    # 1. Mark lesson as completed in a 'user_progress' table
-    supabase.table("user_progress").insert({
-        "user_id": user['id'],
-        "lesson_id": lesson_id,
-        "completed_at": datetime.now().isoformat()
+    # 3. Auto-Enroll Student (Feature #20)
+    supabase.table("enrollments").insert({
+        "user_id": pay_data['user_id'],
+        "batch_id": pay_data['batch_id']
     }).execute()
 
-    # 2. FEATURE #5: GAMIFICATION - Award 20 XP for finishing a lesson
-    new_xp = (user['xp'] or 0) + 20
-    supabase.table("profiles").update({"xp": new_xp}).eq("id", user['id']).execute()
+    # 4. Award XP (Feature #5 Gamification)
+    supabase.rpc('increment_xp', {'user_id': pay_data['user_id'], 'xp_amount': 100}).execute()
 
-    return jsonify({"message": "Lesson completed! +20 XP awarded.", "new_xp": new_xp}), 200
+    return jsonify({"message": "Payment Approved. Student enrolled and 100 XP awarded!"}), 200
 
-# --- FEATURE #14: AI DOUBT SOLVER (IMAGE + TEXT READY) ---
+# --- FEATURE #14: REAL GEMINI AI DOUBT SOLVER ---
 
 @app.route('/ai/solve-doubt', methods=['POST'])
 def solve_doubt():
-    """Feature #14: Instant AI answers for students (Supports Images)."""
+    """
+    Feature #14: Instant AI answers using your Gemini API Key.
+    """
     token = request.headers.get("Authorization")
-    
-    # Updated: Allow super_admin to use the tool as well for testing
     user = verify_role(token, ['student', 'teacher', 'super_admin'])
     if not user: return jsonify({"error": "Unauthorized"}), 403
 
     data = request.json
     question = data.get('question', '')
-    image_url = data.get('image_url', None) 
-    
-    # Simulation logic for Image vs Text
-    if image_url:
-        ai_response = f"AI Vision Analysis: I have analyzed the image at {image_url}. [Detailed solution for the visual problem provided here]."
-    else:
-        ai_response = f"AI Text Analysis for: '{question}'. [Step-by-step logic and concept explanation]."
-    
-    # Log the interaction for Feature #4 (Activity Tracking)
-    supabase.table("ai_logs").insert({
-        "user_id": user['id'],
-        "query": question if not image_url else f"IMAGE_QUERY: {image_url}",
-        "response": ai_response
-    }).execute()
 
-    return jsonify({"answer": ai_response}), 200
+    if not question:
+        return jsonify({"answer": "Please provide a question."}), 400
 
-# --- FEATURE #13: LIVE CLASSES SYSTEM ---
+    try:
+        # Construct professional academic prompt
+        prompt = f"You are the Edu-AI Expert. Provide a detailed, step-by-step academic solution for: {question}"
+        
+        # Call Google Gemini API
+        response = ai_model.generate_content(prompt)
+        ai_answer = response.text
 
-@app.route('/live-classes/schedule', methods=['POST'])
-def schedule_class():
-    """Feature #13: Teachers can schedule Zoom/Google Meet links."""
-    token = request.headers.get("Authorization")
-    user = verify_role(token, ['teacher', 'inst_admin'])
-    if not user: return jsonify({"error": "Unauthorized"}), 403
+        # Feature #4: Log the interaction
+        supabase.table("ai_logs").insert({
+            "user_id": user['id'],
+            "query": question,
+            "response": ai_answer
+        }).execute()
 
-    data = request.json
-    class_data = {
-        "batch_id": data['batch_id'],
-        "title": data['title'],
-        "meeting_link": data['meeting_link'],
-        "scheduled_at": data['scheduled_at']
-    }
-    
-    res = supabase.table("live_classes").insert(class_data).execute()
-    return jsonify({"message": "Live class scheduled!", "details": res.data}), 201
+        return jsonify({"answer": ai_answer}), 200
 
-# --- FEATURE #15: ANNOUNCEMENT SYSTEM ---
+    except Exception as e:
+        print(f"AI Error: {str(e)}")
+        return jsonify({"answer": "AI Brain is busy. Try again in a few seconds!"}), 500
 
-@app.route('/announcements/send', methods=['POST'])
-def send_announcement():
-    token = request.headers.get("Authorization")
-    if not verify_role(token, ['super_admin', 'inst_admin', 'teacher']):
-        return jsonify({"error": "Unauthorized"}), 403
-
-    data = request.json
-    supabase.table("announcements").insert({
-        "title": data['title'],
-        "content": data['content'],
-        "institute_id": data['institute_id'],
-        "created_by": data['sender_id']
-    }).execute()
-    
-    return jsonify({"message": "Announcement posted institute-wide."}), 201
-# --- FEATURE #9: TEST & EXAM SYSTEM ---
-
-@app.route('/exams/create', methods=['POST'])
-def create_exam():
-    """Feature #9: Teachers create tests with MCQ questions."""
-    token = request.headers.get("Authorization")
-    if not verify_role(token, ['teacher', 'inst_admin']):
-        return jsonify({"error": "Unauthorized"}), 403
-
-    data = request.json
-    exam_data = {
-        "title": data['title'],
-        "batch_id": data['batch_id'],
-        "questions": data['questions'], # JSON list of MCQs
-        "duration_minutes": data['duration'],
-        "scheduled_at": data['scheduled_at']
-    }
-    
-    res = supabase.table("exams").insert(exam_data).execute()
-    return jsonify({"message": "Exam scheduled successfully", "exam_id": res.data[0]['id']}), 201
-
-@app.route('/exams/submit-attempt', methods=['POST'])
-def submit_attempt():
-    """Feature #9 & #11: Auto-evaluate student scores."""
-    token = request.headers.get("Authorization")
-    user = verify_role(token, ['student'])
-    if not user: return jsonify({"error": "Unauthorized"}), 403
-
-    data = request.json
-    exam_id = data['exam_id']
-    answers = data['answers'] # Student's choices
-    
-    # 1. Fetch correct answers from DB
-    exam = supabase.table("exams").select("questions").eq("id", exam_id).single().execute()
-    correct_questions = exam.data['questions']
-    
-    # 2. FEATURE #9: AUTO EVALUATION
-    score = 0
-    total = len(correct_questions)
-    for i, q in enumerate(correct_questions):
-        if str(answers.get(str(i))) == str(q['correct_option']):
-            score += 1
-    
-    percentage = (score / total) * 100
-
-    # 3. FEATURE #11: STUDENT PERFORMANCE TRACKING
-    supabase.table("exam_attempts").insert({
-        "student_id": user['id'],
-        "exam_id": exam_id,
-        "score": score,
-        "percentage": percentage,
-        "submitted_at": datetime.now().isoformat()
-    }).execute()
-
-    # 4. FEATURE #5: GAMIFICATION - Award 50 XP for completing a test
-    new_xp = (user['xp'] or 0) + 50
-    supabase.table("profiles").update({"xp": new_xp}).eq("id", user['id']).execute()
-
-    return jsonify({"score": score, "total": total, "percentage": percentage, "xp_awarded": 50}), 200
-
-# --- FEATURE #10: AI PROCTORING SYSTEM ---
+# --- PART 4 WILL HANDLE EXAMS, PROCTORING LOGS & STATS ---
+# --- FEATURE #10: AI PROCTORING & EXAM LOGGING ---
 
 @app.route('/exams/log-proctor-event', methods=['POST'])
-def log_proctoring():
-    """Feature #10: Logs suspicious activity like tab switching or face missing."""
+def log_proctor_event():
+    """
+    Feature #10: Logs suspicious activity (Tab switching, Face missing).
+    Used by teachers to review student integrity.
+    """
     token = request.headers.get("Authorization")
     user = verify_role(token, ['student'])
     if not user: return jsonify({"error": "Unauthorized"}), 403
 
     data = request.json
-    event_data = {
-        "student_id": user['id'],
-        "exam_id": data['exam_id'],
-        "event_type": data['event_type'], # 'tab_switch', 'multiple_faces', 'no_face'
+    event = {
+        "user_id": user['id'],
+        "exam_id": data.get('exam_id'),
+        "event_type": data.get('event_type'), # e.g., "TAB_SWITCH"
         "timestamp": datetime.now().isoformat()
     }
-    
-    supabase.table("proctor_logs").insert(event_data).execute()
-    
-    # Feature #10: Generate Cheating Score
-    # If student switches tabs more than 3 times, flag them
-    logs = supabase.table("proctor_logs").select("id", count="exact").eq("student_id", user['id']).eq("exam_id", data['exam_id']).execute()
-    
-    if logs.count > 3:
-        return jsonify({"warning": "Suspicious activity detected. Final warning.", "flagged": True}), 200
-    
-    return jsonify({"status": "Event logged"}), 200
 
-# --- FEATURE #5: LEADERBOARD SYSTEM ---
+    # Store violation in Supabase
+    supabase.table("proctor_logs").insert(event).execute()
+    
+    return jsonify({"message": "Proctoring event logged."}), 201
 
-@app.route('/gamification/leaderboard', methods=['GET'])
-def get_leaderboard():
-    """Feature #5: Rank students by XP points."""
-    leaderboard = supabase.table("profiles").select("full_name, xp, level").order("xp", desc=True).limit(10).execute()
-    return jsonify(leaderboard.data), 200
-    # --- FEATURE #16: NOTIFICATION SYSTEM ---
+# --- FEATURE #19: GLOBAL ANALYTICS (FOR SUPER ADMIN) ---
 
-@app.route('/notifications', methods=['GET'])
-def get_notifications():
-    """Feature #16: Real-time status for tests, payments, and classes."""
+@app.route('/admin/stats', methods=['GET'])
+def get_global_stats():
+    """
+    Feature #19: Powers the "God Mode" Dashboard.
+    Fetches totals for Revenue, Users, and Institutes.
+    """
     token = request.headers.get("Authorization")
-    user = verify_role(token, ['student', 'teacher', 'inst_admin'])
-    if not user: return jsonify({"error": "Unauthorized"}), 403
+    admin = verify_role(token, ['super_admin'])
+    if not admin: return jsonify({"error": "Unauthorized"}), 403
 
-    notifications = supabase.table("notifications")\
-        .select("*")\
-        .eq("user_id", user['id'])\
-        .order("created_at", desc=True)\
-        .limit(20).execute()
+    try:
+        # 1. Get Total Users
+        users_count = supabase.table("profiles").select("id", count="exact").execute()
         
-    return jsonify(notifications.data), 200
+        # 2. Get Total Revenue (Sum of approved payments)
+        revenue_res = supabase.table("payments").select("amount").eq("status", "approved").execute()
+        total_rev = sum(int(item['amount']) for item in revenue_res.data)
 
-# --- FEATURE #17: EMAIL AUTOMATION (MOCK) ---
+        # 3. Get Active Institutes
+        inst_count = supabase.table("institutes").select("id", count="exact").execute()
 
-def trigger_email_automation(user_email, subject, body_type):
-    """Feature #17: Automates communication for key events."""
-    # In production, you'd use SendGrid, Mailgun, or AWS SES here.
-    # For now, we log the automation event.
-    print(f"AUTOMATION: Sending {body_type} email to {user_email} with subject: {subject}")
-    return True
+        # 4. Get Pending Approvals
+        pending_res = supabase.table("profiles").select("id", count="exact").eq("is_approved", False).execute()
 
-# --- FEATURE #23: SPECIAL AUTO-ENROLL LOGIC ---
+        return jsonify({
+            "total_users": users_count.count,
+            "total_revenue": total_rev,
+            "active_institutes": inst_count.count,
+            "pending_approvals": pending_res.count
+        }), 200
 
-@app.route('/admin/toggle-feature', methods=['POST'])
-def toggle_feature():
-    """Feature #3: Enable/Disable LMS, Live Classes, or Proctoring per Institute."""
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- FEATURE #3: INSTITUTE CREATION (GOD MODE) ---
+
+@app.route('/admin/create-institute', methods=['POST'])
+def create_institute():
+    """
+    Feature #3: Super Admin creates a new Institute branch.
+    """
     token = request.headers.get("Authorization")
-    if not verify_role(token, ['super_admin', 'inst_admin']):
-        return jsonify({"error": "Unauthorized"}), 403
+    admin = verify_role(token, ['super_admin'])
+    if not admin: return jsonify({"error": "Unauthorized"}), 403
 
     data = request.json
-    inst_id = data['institute_id']
-    feature_name = data['feature'] # e.g., 'ai_proctoring'
-    status = data['status'] # True/False
-    
-    # Update JSONB settings field in institutes table
-    current_settings = supabase.table("institutes").select("settings").eq("id", inst_id).single().execute()
-    new_settings = current_settings.data['settings']
-    new_settings[feature_name] = status
-    
-    supabase.table("institutes").update({"settings": new_settings}).eq("id", inst_id).execute()
-    return jsonify({"message": f"Feature {feature_name} updated to {status}"}), 200
+    new_inst = {
+        "name": data.get('name'),
+        "admin_email": data.get('email'),
+        "features_enabled": data.get('features', ['ai_doubt', 'proctoring']),
+        "created_at": datetime.now().isoformat()
+    }
 
-# --- THE FINAL RUNNER ---
+    supabase.table("institutes").insert(new_inst).execute()
+    return jsonify({"message": f"Institute {data.get('name')} successfully deployed!"}), 201
 
-@app.errorhandler(404)
-def not_found(e):
-    return jsonify({"error": "Route not found"}), 404
-
-@app.errorhandler(500)
-def server_error(e):
-    return jsonify({"error": "Internal server error"}), 500
-
+# --- START THE CORE ---
 if __name__ == '__main__':
-    # Render uses the PORT environment variable
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-    
+    app.run(host='0.0.0.0', port=port, debug=False)
