@@ -15,50 +15,48 @@ async function initDashboard() {
     loadStudentStats();
 }
 
-// --- FEATURE #14: GEMINI 1.5 AI SOLVER ---
 async function askAI() {
     const question = document.getElementById('aiQuestion').value;
     const responseBox = document.getElementById('aiResponse');
     const btn = document.getElementById('aiBtn');
 
-    if (!question) return alert("Please type your doubt first!");
+    if (!question) return alert("Please type your doubt!");
 
-    // UI Loading State
+    // Set Loading State
     btn.innerText = "THINKING...";
     btn.disabled = true;
     responseBox.classList.remove('hidden');
-    responseBox.innerHTML = `<div class="flex items-center gap-3">
-        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-        <span class="text-xs font-bold uppercase tracking-widest text-blue-400">Gemini 1.5 is analyzing...</span>
-    </div>`;
+    responseBox.innerHTML = `<p class="text-blue-400 animate-pulse font-bold text-xs uppercase tracking-widest">● Gemini 1.5 is analyzing...</p>`;
 
     try {
         const res = await fetch(`${BACKEND_URL}/ai/solve-doubt`, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${TOKEN}`
+                "Authorization": `Bearer ${TOKEN}` // Make sure TOKEN is valid
             },
             body: JSON.stringify({ question: question })
         });
 
         const data = await res.json();
         
-        if (data.answer) {
-            // Render the solution with formatting
+        if (res.ok) {
+            // Success: Show the answer
             responseBox.innerHTML = `
-                <p class="text-[10px] font-black text-blue-500 mb-2 uppercase tracking-tighter">Verified Solution</p>
-                <div class="text-sm leading-relaxed text-white whitespace-pre-line">${data.answer}</div>
+                <div class="text-sm text-blue-100 whitespace-pre-line leading-relaxed">${data.answer}</div>
             `;
+        } else {
+            // Backend Error: Show what went wrong
+            responseBox.innerHTML = `<p class="text-red-400 font-bold text-xs">❌ ERROR: ${data.answer || "Server Offline"}</p>`;
         }
     } catch (err) {
-        responseBox.innerHTML = `<p class="text-red-400 text-xs">Connection to AI Brain lost. Retrying...</p>`;
+        // Network Error (CORS or Render Down)
+        responseBox.innerHTML = `<p class="text-red-500 font-bold text-xs">📡 NETWORK ERROR: Check if Render is live.</p>`;
     } finally {
         btn.innerText = "Solve with Gemini 1.5";
         btn.disabled = false;
     }
 }
-
 // --- FEATURE #10: AI PROCTORING (TAB-SWITCH DETECTION) ---
 let violationCount = 0;
 
