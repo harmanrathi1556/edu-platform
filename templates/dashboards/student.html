@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="p-6">
+
+    <!-- Title -->
+    <h1 class="text-3xl font-bold text-purple-400 mb-6">
+        🎓 Student Dashboard
+    </h1>
+
+    <!-- ========================= -->
+    <!-- 💳 UPLOAD PAYMENT -->
+    <!-- ========================= -->
+    <div class="glass p-6 mb-6">
+        <h2 class="text-xl mb-4 text-purple-400">💳 Upload Payment (QR Screenshot)</h2>
+
+        <form method="POST" action="/upload_payment" class="grid gap-4">
+
+            <!-- For now we use URL input (simple & works on Render) -->
+            <input 
+                type="text" 
+                name="screenshot" 
+                placeholder="Paste screenshot image URL (Google Drive / Img link)"
+                required
+                class="p-2 rounded bg-gray-800 text-white"
+            >
+
+            <button 
+                class="bg-purple-600 px-4 py-2 rounded glow hover:bg-purple-700">
+                Upload Payment
+            </button>
+
+        </form>
+    </div>
+
+    <!-- ========================= -->
+    <!-- 📊 PAYMENT STATUS -->
+    <!-- ========================= -->
+    <div class="glass p-6">
+        <h2 class="text-xl mb-4 text-purple-400">📊 Payment Status</h2>
+
+        {% if payments %}
+            {% for p in payments %}
+                <div class="flex justify-between border-b border-gray-700 py-2">
+
+                    <span>
+                        Screenshot: 
+                        <a href="{{ p.screenshot }}" target="_blank" class="text-blue-400 underline">
+                            View
+                        </a>
+                    </span>
+
+                    <span class="
+                        {% if p.status == 'approved' %}
+                            text-green-400
+                        {% elif p.status == 'rejected' %}
+                            text-red-400
+                        {% else %}
+                            text-yellow-400
+                        {% endif %}
+                    ">
+                        {{ p.status }}
+                    </span>
+
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-400">No payments uploaded</p>
+        {% endif %}
+    </div>
+
+    <!-- ========================= -->
+    <!-- 🚪 LOGOUT -->
+    <!-- ========================= -->
+    <div class="mt-6">
+        <a href="/logout"
+           class="bg-red-500 px-4 py-2 rounded glow hover:bg-red-600">
+            Logout
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}
