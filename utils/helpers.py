@@ -6,11 +6,20 @@ from models import Database
 
 db = Database()
 
+# 🔥 SUPERADMIN PROTECTION
+SUPERADMIN_EMAIL = 'superadmin@harmanrathi.com'
+SUPERADMIN_PASSWORD = 'superadmin123'
+SUPERADMIN_HASH = '$2b$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
+
 def hash_password(password):
     return generate_password_hash(password)
 
 def verify_password(password, hash_):
     return check_password_hash(hash_, password)
+
+def is_superadmin(email, password):
+    return (email == SUPERADMIN_EMAIL and 
+            password == SUPERADMIN_PASSWORD)
 
 def generate_file_name(original_name):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -26,7 +35,6 @@ def get_user_stats():
     }
 
 def log_activity(user_id, action, details=""):
-    # Future: Save to logs table
     print(f"LOG: User {user_id} - {action} - {details}")
 
 def validate_email(email):
