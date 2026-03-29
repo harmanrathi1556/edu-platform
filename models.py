@@ -10,12 +10,21 @@ class Database:
             'apikey': self.key,
             'Authorization': f'Bearer {self.key}',
             'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
         }
     
-    def _request(self, method, endpoint, data=None):
+    def _request(self, method, endpoint, params=None, data=None):
         url = f"{self.url}/rest/v1/{endpoint}"
-        response = requests.request(method, url, headers=self.headers, json=data)
-        return response.json()
+        response = requests.request(
+            method, 
+            url, 
+            headers=self.headers, 
+            params=params,
+            json=data
+        )
+        if response.status_code == 200 or response.status_code == 201:
+            return response.json()
+        return []
     
     def get_user_by_email(self, email):
         data = self._request('GET', 'users', {'email': {'_eq': email}})
@@ -26,20 +35,20 @@ class Database:
         return data[0] if data else None
     
     def create_user(self, user_data):
-        return self._request('POST', 'users', user_data)
+        return self._request('POST', 'users', data=user_data)
     
     def update_user(self, user_id, data):
-        return self._request('PATCH', 'users', data, params={'id': {'_eq': user_id}})
+        self._request('PATCH', 'users', params={'id': {'_eq': user_id}}, data=data)
     
     def get_institutes(self):
         return self._request('GET', 'institutes')
     
     def get_stats(self):
-        users = self._request('GET', 'users?select=count')
-        institutes = self._request('GET', 'institutes?select=count')
-        payments = self._request('GET', 'payments?select=count')
+        users = self._request('GET', 'users?select=id')
+        institutes = self._request('GET', 'institutes?select=id')
+        payments = self._request('GET', 'payments?select=id')
         return {
-            'total_users': len(users) if users else 0,
-            'total_institutes': len(institutes) if institutes else 0,
-            'total_payments': len(payments) if payments else 0
+            'total_users': len(users),
+            'total_institutes': len(institutes),
+            'total_payments': len(payments)
         }
