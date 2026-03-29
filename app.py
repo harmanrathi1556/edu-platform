@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 from supabase import create_client
+from services.ai_service import solve_doubt
 import os
 
 app = Flask(__name__)
@@ -79,6 +80,14 @@ def register():
 @app.route("/login")
 def login_page():
     return render_template("login.html")
+
+@app.route("/ask-ai", methods=["POST"])
+def ask_ai():
+    question = request.form.get("question")
+
+    answer = solve_doubt(question)
+
+    return jsonify({"answer": answer})
 
 # =========================
 # 🔐 LOGIN LOGIC
