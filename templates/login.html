@@ -1,97 +1,48 @@
 {% extends "base.html" %}
 
+{% block title %}Login - Harman Rathi Portal{% endblock %}
+
 {% block content %}
-
-<!-- Background Animation -->
-<div class="absolute inset-0 -z-10 overflow-hidden">
-    <div class="absolute w-72 h-72 bg-cyan-500 opacity-20 rounded-full blur-3xl top-10 left-10 animate-pulse"></div>
-    <div class="absolute w-72 h-72 bg-purple-500 opacity-20 rounded-full blur-3xl bottom-10 right-10 animate-pulse"></div>
-</div>
-
-<div class="flex items-center justify-center min-h-screen">
-
-    <!-- Login Card -->
-    <div class="glass glow p-10 w-full max-w-md float">
-
-        <h2 class="text-3xl font-bold text-center text-cyan-400 mb-6">
-            🔐 Login Portal
-        </h2>
-
-        <!-- Error Message -->
-        {% if error %}
-        <div class="bg-red-500/20 text-red-400 p-2 rounded mb-4 text-center">
-            {{ error }}
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="glass max-w-md w-full p-10 rounded-3xl glow-blue">
+        <div class="text-center mb-10">
+            <i class="fas fa-rocket text-6xl text-blue-400 mb-4"></i>
+            <h1 class="orbitron text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                Welcome Back
+            </h1>
+            <p class="opacity-75">Sign in to your account</p>
         </div>
-        {% endif %}
 
-        <!-- Form -->
-        <form method="POST" action="/login" id="loginForm">
-
-            <!-- Email -->
-            <div class="mb-4">
-                <label class="block mb-1 text-sm">Email</label>
-                <input type="email" name="email" required
-                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none transition">
+        <form method="POST" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium mb-2">Email</label>
+                <input type="email" name="email" required 
+                       class="w-full glass px-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300" 
+                       placeholder="superadmin@harmanrathi.com">
             </div>
-
-            <!-- Password -->
-            <div class="mb-4 relative">
-                <label class="block mb-1 text-sm">Password</label>
-                <input type="password" name="password" id="password" required
-                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none transition">
-
-                <!-- Toggle Button -->
-                <span onclick="togglePassword()"
-                    class="absolute right-3 top-10 cursor-pointer text-gray-400 hover:text-cyan-400">
-                    👁
-                </span>
+            
+            <div>
+                <label class="block text-sm font-medium mb-2">Password</label>
+                <input type="password" name="password" required 
+                       class="w-full glass px-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300" 
+                       placeholder="superadmin123">
             </div>
-
-            <!-- Role Selection -->
-            <div class="mb-6">
-                <label class="block mb-2 text-sm">Login As</label>
-                <select name="role"
-                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none">
-                    
-                    <option value="student">🎓 Student</option>
-                    <option value="teacher">👨‍🏫 Teacher</option>
-                    <option value="admin">🏫 Institute Admin</option>
-                    <option value="superadmin">⚡ Super Admin</option>
-
-                </select>
-            </div>
-
-            <!-- Button -->
-            <button type="submit" id="loginBtn"
-                class="w-full bg-cyan-500 hover:bg-cyan-400 p-3 rounded font-bold transition glow">
-                Login
+            
+            <button type="submit" 
+                    class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-6 py-4 rounded-2xl font-bold text-lg glow-blue transform hover:scale-105 transition-all duration-300">
+                <i class="fas fa-sign-in-alt mr-2"></i>
+                Sign In
             </button>
-
         </form>
 
-        <!-- Footer -->
-        <p class="text-center mt-4 text-sm text-gray-400">
-            Don't have an account?
-            <a href="/register" class="text-cyan-400 hover:underline">Register</a>
-        </p>
-
+        <div class="mt-8 text-center">
+            <p class="opacity-75">Don't have an account? 
+                <a href="{{ url_for('auth.register') }}" class="text-blue-400 hover:text-blue-300 font-bold">Register here</a>
+            </p>
+            <p class="mt-2 text-xs opacity-50">
+                👑 Superadmin: superadmin@harmanrathi.com / superadmin123
+            </p>
+        </div>
     </div>
-
 </div>
-
-<!-- JS -->
-<script>
-    function togglePassword() {
-        const password = document.getElementById("password");
-        password.type = password.type === "password" ? "text" : "password";
-    }
-
-    // Loading animation
-    document.getElementById("loginForm").addEventListener("submit", function () {
-        const btn = document.getElementById("loginBtn");
-        btn.innerText = "Logging in...";
-        btn.disabled = true;
-    });
-</script>
-
 {% endblock %}
