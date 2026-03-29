@@ -221,39 +221,46 @@ def approve_payment():
     return jsonify({"message": "Student Enrolled & XP Awarded!"}), 200
 
 # --- FEATURE #14: REAL-TIME AI DOUBT SOLVER (GEMINI 1.5) ---
-
 @app.route('/ai/solve-doubt', methods=['POST'])
 def solve_doubt():
     """
-    Feature #14: Instant AI solutions for Math/Science.
+    Feature #14: Optimized for speed and error reporting.
     """
     token = request.headers.get("Authorization")
-    if not verify_role(token, ['student', 'teacher', 'super_admin']): 
-        return jsonify({"error": "Unauthorized"}), 403
+    user = verify_role(token, ['student', 'teacher', 'super_admin'])
+    if not user: 
+        return jsonify({"answer": "🔐 Security: Please log in again."}), 401
 
     data = request.json
     question = data.get('question')
+    if not question:
+        return jsonify({"answer": "❓ Please type a question."}), 400
 
     try:
         # System Prompt ensures AI stays as a professional teacher
-        prompt = f"Edu-AI Teacher Mode: Solve this academic doubt clearly: {question}"
+        prompt = f"System: Act as a Class 12 JEE Teacher. Question: {question}"
         response = ai_model.generate_content(prompt)
         
-        # Log usage for analytics (Feature #19)
-        supabase.table("ai_logs").insert({"user_id": "system", "query": question}).execute()
+        if response and response.text:
+            # Log usage for your analytics (Feature #19)
+            supabase.table("ai_logs").insert({
+                "user_id": user['id'], 
+                "query": question,
+                "response": response.text[:200]
+            }).execute()
 
-        return jsonify({"answer": response.text}), 200
+            return jsonify({"answer": response.text}), 200
+        else:
+            return jsonify({"answer": "⚠️ AI Brain returned empty. Try again."}), 500
+
     except Exception as e:
-        return jsonify({"answer": "AI Brain is currently syncing. Retry in 10s."}), 500
+        print(f"AI Error: {str(e)}")
+        # This will tell us if your API Key is expired or hit a limit
+        return jsonify({"answer": f"🤖 AI Error: {str(e)}"}), 500
 
-# --- FEATURE #10: AI PROCTORING LOGS (INTEGRITY GUARD) ---
-
+# --- FEATURE #10: AI PROCTORING LOGS ---
 @app.route('/exams/log-violation', methods=['POST'])
 def log_violation():
-    """
-    Feature #10: Detects Tab Switches or Face Missing.
-    Used for Feature #21 (Violation Reports).
-    """
     token = request.headers.get("Authorization")
     user = verify_role(token, ['student'])
     if not user: return jsonify({"error": "Unauthorized"}), 403
@@ -261,8 +268,8 @@ def log_violation():
     data = request.json
     violation = {
         "user_id": user['id'],
-        "exam_id": data.get('exam_id'),
-        "type": data.get('type'), # e.g., 'TAB_SWITCH'
+        "exam_id": data.get('exam_id', 'GENERAL_MONITOR'),
+        "type": data.get('type'), 
         "timestamp": datetime.now().isoformat()
     }
     
@@ -271,6 +278,6 @@ def log_violation():
 
 # --- START UP ---
 if __name__ == '__main__':
+    # Use PORT from Render environment or default to 5000
     port = int(os.environ.get("PORT", 5000))
-    # Gunicorn handles this on Render
     app.run(host='0.0.0.0', port=port)
