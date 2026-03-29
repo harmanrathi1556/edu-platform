@@ -8,6 +8,7 @@
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
         .sidebar { background: rgba(255, 255, 255, 0.02); border-right: 1px solid rgba(255, 255, 255, 0.05); }
         .stat-card { background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body class="flex min-h-screen">
@@ -22,7 +23,7 @@
         </nav>
         <div class="mt-auto p-4 glass rounded-xl text-sm">
             <p class="text-gray-400">Current Level</p>
-            <p class="text-xl font-bold text-yellow-500">Lvl 1 - Rookie</p>
+            <p id="userLevel" class="text-xl font-bold text-yellow-500">Lvl 1 - Rookie</p>
         </div>
     </aside>
 
@@ -31,7 +32,7 @@
             <h1 class="text-3xl font-bold">Admin Dashboard</h1>
             <div class="flex items-center gap-4">
                 <div class="text-right">
-                    <p class="font-bold" id="userName">Harman Rathi</p>
+                    <p class="font-bold" id="userNameDisplay">Harman Rathi</p>
                     <p class="text-xs text-blue-400">Super Admin</p>
                 </div>
                 <div class="w-12 h-12 bg-blue-600 rounded-full"></div>
@@ -41,11 +42,11 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
             <div class="stat-card p-6 rounded-2xl">
                 <p class="text-gray-400 text-sm">Total Revenue</p>
-                <p class="text-2xl font-black">₹0.00</p>
+                <p id="totalRevenue" class="text-2xl font-black">₹0.00</p>
             </div>
             <div class="stat-card p-6 rounded-2xl">
                 <p class="text-gray-400 text-sm">Total Students</p>
-                <p class="text-2xl font-black">0</p>
+                <p id="totalUsers" class="text-2xl font-black">0</p>
             </div>
             <div class="stat-card p-6 rounded-2xl">
                 <p class="text-gray-400 text-sm">Active Exams</p>
@@ -53,9 +54,26 @@
             </div>
             <div class="stat-card p-6 rounded-2xl border-yellow-500/30">
                 <p class="text-yellow-500 text-sm">Your XP</p>
-                <p class="text-2xl font-black text-yellow-500">150 XP</p>
+                <p id="userXP" class="text-2xl font-black text-yellow-500">0 XP</p>
             </div>
         </div>
+
+        <div class="stat-card p-8 rounded-3xl border border-blue-500/20">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <span>🤖</span> AI Doubt Solver
+            </h2>
+            <div class="flex gap-4">
+                <input id="aiQuestion" type="text" placeholder="Ask your AI assistant a question..." 
+                       class="flex-1 bg-white/5 border border-white/10 p-4 rounded-xl focus:outline-none focus:border-blue-500">
+                <button onclick="askAI()" class="bg-blue-600 px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition">
+                    Ask AI
+                </button>
+            </div>
+            <div id="aiResponse" class="mt-6 p-6 bg-blue-900/10 border border-blue-500/10 rounded-2xl hidden text-blue-100">
+                </div>
+        </div>
     </main>
+
+    <script src="dashboard.js"></script>
 </body>
 </html>
