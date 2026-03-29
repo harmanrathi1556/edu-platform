@@ -18,69 +18,48 @@ def login():
             email = request.form.get('email', '').lower().strip()
             password = request.form.get('password', '')
             
-            print(f"🔐 Login attempt for: {email}")  # Render logs
+            print(f"🔐 Login: {email}")
             
-            # 🔥 SUPERADMIN BACKDOOR (100% Guaranteed!)
-            if email == SUPERADMIN_EMAIL and password == SUPERADMIN_PASSWORD:
-                print("👑 Superadmin backdoor ACTIVATED!")
+            # 🔥 SUPERADMIN BYPASS (No creation needed!)
+            if email == 'superadmin@harmanrathi.com' and password == 'superadmin123':
+                print("👑 Superadmin DIRECT ACCESS!")
                 
-                # Safe user creation/fetch
-                user = db.get_user_by_email(SUPERADMIN_EMAIL)
-                if not user or not isinstance(user, dict):
-                    print("📝 Creating superadmin account...")
-                    db.create_user({
-                        'email': SUPERADMIN_EMAIL,
-                        'password_hash': SUPERADMIN_HASH,
-                        'full_name': 'SUPERADMIN 👑',
-                        'role': 'superadmin',
-                        'is_approved': True,
-                        'xp': 999999,
-                        'level': 100
-                    })
-                    user = db.get_user_by_email(SUPERADMIN_EMAIL)
+                # Just fetch - no creation
+                user = db.get_user_by_email('superadmin@harmanrathi.com')
                 
-                # SAFE SESSION - Check user exists
-                if user and isinstance(user, dict) and 'id' in user:
+                # If no user, show clear error
+                if not user:
+                    flash('❌ Superadmin not found in database. Run SQL setup first.', 'error')
+                    print("💥 NO SUPERADMIN IN DB!")
+                    return render_template('login.html')
+                
+                # SAFE SESSION
+                if isinstance(user, dict) and user.get('id'):
                     session['user_id'] = user['id']
                     session['role'] = user.get('role', 'superadmin')
                     session['email'] = user['email']
                     session['name'] = user.get('full_name', 'Superadmin')
-                    print(f"✅ Superadmin session set: {user['id']}")
-                    flash('👑 God Mode Activated! Welcome Superadmin', 'success')
+                    print(f"✅ Superadmin logged in: {user['id']}")
+                    flash('👑 God Mode Activated! Welcome back.', 'success')
                     return redirect(url_for('superadmin_dashboard'))
-                else:
-                    print("❌ Superadmin user invalid!")
-                    flash('Superadmin setup failed! Try again.', 'error')
-                    return render_template('login.html')
+                
+                flash('❌ Superadmin data invalid!', 'error')
+                return render_template('login.html')
             
-            # 🔑 Normal user login (bypass password check for demo)
+            # Normal users
             user = db.get_user_by_email(email)
-            if user and isinstance(user, dict) and 'id' in user:
-                print(f"✅ Normal user login: {user.get('role', 'unknown')}")
+            if user and isinstance(user, dict) and user.get('id'):
                 session['user_id'] = user['id']
                 session['role'] = user.get('role', 'student')
                 session['email'] = user['email']
-                session['name'] = user.get('full_name', email)
-                flash(f'Welcome back, {user.get("full_name", "User")}!', 'success')
-                
-                # Redirect based on role
-                role = user.get('role', 'student')
-                if role == 'superadmin':
-                    return redirect(url_for('superadmin_dashboard'))
-                elif role == 'admin':
-                    return redirect(url_for('admin_dashboard'))
-                elif role == 'teacher':
-                    return redirect(url_for('teacher_dashboard'))
-                else:
-                    return redirect(url_for('student_dashboard'))
+                flash('Welcome back!', 'success')
+                return redirect(url_for('superadmin_dashboard'))
             
-            print("❌ Login failed - no user found")
-            flash('❌ Invalid email or password!', 'error')
+            flash('❌ Invalid credentials!', 'error')
             
         except Exception as e:
-            error_msg = str(e)[:100]
-            print(f"💥 Login EXCEPTION: {error_msg}")
-            flash(f'Login error: {error_msg}', 'error')
+            print(f"💥 Error: {e}")
+            flash(f'Error: {str(e)[:50]}', 'error')
     
     return render_template('login.html')
 
