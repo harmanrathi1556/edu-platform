@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Institute Admin | Control Panel | EDU-AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .payment-card { border-left: 4px solid #3b82f6; transition: 0.3s; }
+        .payment-card:hover { transform: scale(1.01); background: rgba(255,255,255,0.05); }
+        .ss-preview { cursor: zoom-in; transition: 0.3s; }
+        .ss-preview:hover { opacity: 0.8; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <aside class="w-72 sidebar p-8 flex flex-col hidden lg:flex">
+        <div class="text-2xl font-black mb-12 text-blue-500">INSTITUTE<span class="text-white">ADMIN</span></div>
+        <nav class="space-y-4 flex-1 text-sm">
+            <div onclick="showTab('dashboard')" class="flex items-center gap-3 p-4 bg-blue-600/10 text-blue-400 rounded-2xl cursor-pointer font-bold"><span>📊</span> Dashboard</div>
+            <div onclick="showTab('batches')" class="flex items-center gap-3 p-4 hover:bg-white/5 rounded-2xl cursor-pointer transition text-gray-400"><span>📚</span> Batches</div>
+            <div onclick="showTab('payments')" class="flex items-center gap-3 p-4 hover:bg-blue-500/10 text-blue-400 rounded-2xl cursor-pointer transition font-bold"><span>💳</span> Verify Payments</div>
+            <div onclick="showTab('coupons')" class="flex items-center gap-3 p-4 hover:bg-white/5 rounded-2xl cursor-pointer transition text-gray-400"><span>🎟️</span> Coupon Codes</div>
+        </nav>
+        <div class="mt-auto p-4 glass rounded-2xl border-white/5">
+            <p class="text-[10px] text-gray-500 uppercase font-black">Institute ID</p>
+            <p id="instId" class="text-xs font-mono text-blue-400">#INST-4492</p>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-10 overflow-y-auto">
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-4xl font-black tracking-tight">Management <span class="text-blue-500">Portal</span></h1>
+                <p id="instName" class="text-gray-500">Global Public School Branch</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="showTab('batches')" class="bg-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition">+ Create Batch</button>
+            </div>
+        </header>
+
+        <div id="paymentsTab" class="tab-content">
+            <h2 class="text-2xl font-black mb-6 flex items-center gap-3">
+                <span class="text-blue-500">💳</span> Pending Payment Screenshots
+            </h2>
+            <p class="text-gray-500 mb-8 text-sm">Review student UPI/QR screenshots and approve batch access.</p>
+
+            <div id="paymentList" class="space-y-4">
+                <div class="glass p-6 rounded-3xl payment-card flex flex-wrap items-center justify-between gap-6">
+                    <div class="flex items-center gap-4">
+                        <div onclick="openScreenshot('https://via.placeholder.com/600x800?text=Student+UPI+Screenshot')" class="w-16 h-20 bg-white/10 rounded-lg ss-preview flex items-center justify-center overflow-hidden border border-white/10">
+                            <span class="text-[10px] text-gray-500">CLICK TO VIEW</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-lg">Student: Rahul Kumar</p>
+                            <p class="text-blue-400 text-xs font-mono">Batch: JEE STAR 2026</p>
+                            <p class="text-green-400 text-sm font-black">Amount: ₹4,999</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="approvePayment('pay_001')" class="bg-green-600/20 text-green-500 border border-green-600/30 px-6 py-3 rounded-xl font-bold hover:bg-green-600 hover:text-white transition">Approve & Enroll</button>
+                        <button class="bg-red-600/20 text-red-500 border border-red-600/30 px-6 py-3 rounded-xl font-bold hover:bg-red-600 hover:text-white transition">Reject</button>
+                    </div>
+                </div>
+                </div>
+        </div>
+    </main>
+
+    <div id="ssModal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-50 p-10" onclick="closeScreenshot()">
+        <img id="ssFull" src="" class="max-h-full rounded-2xl shadow-2xl border-4 border-white/10">
+        <p class="absolute bottom-10 text-gray-500">Click anywhere to close</p>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://edu-platform-sqty.onrender.com";
+        const TOKEN = localStorage.getItem("token");
+
+        function showTab(tab) {
+            // Simplified for now - can hide/show divs based on ID
+            console.log("Navigating to " + tab);
+        }
+
+        // FEATURE #7: VIEW SCREENSHOT
+        function openScreenshot(url) {
+            document.getElementById('ssFull').src = url;
+            document.getElementById('ssModal').classList.remove('hidden');
+        }
+
+        function closeScreenshot() {
+            document.getElementById('ssModal').classList.add('hidden');
+        }
+
+        // FEATURE #20: AUTOMATED ENROLLMENT AFTER APPROVAL
+        async function approvePayment(paymentId) {
+            const confirmAppr = confirm("Confirm this payment? The student will be automatically added to the batch.");
+            if(!confirmAppr) return;
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/admin/approve-payment`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${TOKEN}` },
+                    body: JSON.stringify({ payment_id: paymentId })
+                });
+                
+                if(res.ok) {
+                    alert("SUCCESS: Payment approved. Student has been awarded 100 XP and added to the Batch!");
+                    location.reload();
+                }
+            } catch(e) {
+                alert("Server error during approval.");
+            }
+        }
+    </script>
+</body>
+</html>
