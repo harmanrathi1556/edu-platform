@@ -4,12 +4,16 @@ function askGlobalAI() {
     fetch("/ask-ai", {
         method: "POST",
         headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/json"
         },
-        body: `question=${encodeURIComponent(question)}`
+        body: JSON.stringify({ question: question })
     })
     .then(res => res.json())
     .then(data => {
         document.getElementById("global-answer").innerText = data.answer;
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById("global-answer").innerText = "Error connecting AI";
     });
 }
