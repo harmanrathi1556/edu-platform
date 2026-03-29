@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Portal | EDU-AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .violation-card { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); transition: 0.3s; }
+        .violation-card:hover { transform: scale(1.02); background: rgba(239, 68, 68, 0.1); }
+        .course-card { border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
+        .course-card:hover { border-color: #3b82f6; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <aside class="w-72 sidebar p-8 flex flex-col hidden lg:flex">
+        <div class="text-2xl font-black mb-12 text-blue-500">TEACHER<span class="text-white">PRO</span></div>
+        <nav class="space-y-4 flex-1 text-sm">
+            <div onclick="showTab('courses')" class="flex items-center gap-3 p-4 bg-blue-600/10 text-blue-400 rounded-2xl cursor-pointer font-bold"><span>📖</span> My Courses (LMS)</div>
+            <div onclick="showTab('tests')" class="flex items-center gap-3 p-4 hover:bg-white/5 rounded-2xl cursor-pointer transition text-gray-400"><span>🧪</span> Create Exam</div>
+            <div onclick="showTab('proctor')" class="flex items-center gap-3 p-4 hover:bg-red-500/10 text-red-500 rounded-2xl cursor-pointer transition font-bold"><span>🔐</span> Proctoring Logs</div>
+            <div onclick="showTab('live')" class="flex items-center gap-3 p-4 hover:bg-white/5 rounded-2xl cursor-pointer transition text-gray-400"><span>🎥</span> Live Classes</div>
+        </nav>
+        <div class="mt-auto p-4 glass rounded-2xl border-white/5">
+            <p class="text-[10px] text-gray-500 uppercase font-black">Teacher Status</p>
+            <p class="text-xs font-bold text-green-400">● Online & Monitoring</p>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-10 overflow-y-auto">
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-4xl font-black tracking-tight text-white">Academic <span class="text-blue-500">Dashboard</span></h1>
+                <p class="text-gray-500">Manage your batches and track student integrity.</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="openCreateTest()" class="bg-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition">Create New Test</button>
+            </div>
+        </header>
+
+        <div id="proctorTab" class="tab-content mb-12">
+            <h2 class="text-2xl font-black mb-6 flex items-center gap-3">
+                <span class="text-red-500">🚨</span> AI Cheating Alerts
+            </h2>
+            <div class="space-y-4">
+                <div class="glass p-6 rounded-3xl violation-card flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-lg text-red-100">Student: Aryan Sharma</p>
+                        <p class="text-xs text-gray-400 uppercase font-bold mt-1">Test: JEE Full Mock #4</p>
+                    </div>
+                    <div class="text-center bg-red-950/30 px-6 py-2 rounded-xl border border-red-900/50">
+                        <p class="text-[10px] text-red-400 font-black uppercase">Violation Type</p>
+                        <p class="text-sm font-bold text-red-500">TAB_SWITCH (3 times)</p>
+                    </div>
+                    <button class="bg-white/5 px-4 py-2 rounded-lg text-xs hover:bg-white/10 transition">View Details</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="lmsTab" class="tab-content">
+            <h2 class="text-2xl font-black mb-6 flex items-center gap-3">
+                <span class="text-blue-500">📖</span> Learning Management
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass p-8 rounded-[2.5rem] course-card">
+                    <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center text-2xl mb-4">📄</div>
+                    <h3 class="text-xl font-bold mb-2">Upload PDFs/Notes</h3>
+                    <p class="text-gray-500 text-sm mb-6">Share formula sheets or homework PDFs with your batch.</p>
+                    <button class="w-full bg-white/5 py-3 rounded-xl font-bold border border-white/10 hover:bg-blue-600 transition">Upload File</button>
+                </div>
+                <div class="glass p-8 rounded-[2.5rem] course-card">
+                    <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center text-2xl mb-4">🎥</div>
+                    <h3 class="text-xl font-bold mb-2">Upload Video Lecture</h3>
+                    <p class="text-gray-500 text-sm mb-6">Host your recorded classes securely on the platform.</p>
+                    <button class="w-full bg-white/5 py-3 rounded-xl font-bold border border-white/10 hover:bg-blue-600 transition">Upload MP4</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const BACKEND_URL = "https://edu-platform-sqty.onrender.com";
+        const TOKEN = localStorage.getItem("token");
+
+        function showTab(tab) {
+            console.log("Teacher navigating to: " + tab);
+            // Hide/Show logic for different dashboard features
+        }
+
+        // FEATURE #9: TEST CREATION TRIGGER
+        function openCreateTest() {
+            alert("Test Engine Initializing... You can now add MCQ questions and set the AI Proctoring strictness.");
+        }
+    </script>
+</body>
+</html>
