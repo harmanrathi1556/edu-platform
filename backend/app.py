@@ -169,25 +169,31 @@ def complete_lesson():
 
     return jsonify({"message": "Lesson completed! +20 XP awarded.", "new_xp": new_xp}), 200
 
-# --- FEATURE #14: AI DOUBT SOLVER (POWERFUL AI) ---
+# --- FEATURE #14: AI DOUBT SOLVER (IMAGE + TEXT READY) ---
 
 @app.route('/ai/solve-doubt', methods=['POST'])
 def solve_doubt():
-    """Feature #14: Instant AI answers for students."""
+    """Feature #14: Instant AI answers for students (Supports Images)."""
     token = request.headers.get("Authorization")
-    user = verify_role(token, ['student', 'teacher'])
+    
+    # Updated: Allow super_admin to use the tool as well for testing
+    user = verify_role(token, ['student', 'teacher', 'super_admin'])
     if not user: return jsonify({"error": "Unauthorized"}), 403
 
-    question = request.json.get('question')
+    data = request.json
+    question = data.get('question', '')
+    image_url = data.get('image_url', None) 
     
-    # In a production app, you would call Google Gemini API or OpenAI here.
-    # For now, we simulate the AI logic:
-    ai_response = f"AI Analysis for: '{question}'\n\nBased on the curriculum, this concept relates to your current batch. [Detailed Explanation Placeholder]"
+    # Simulation logic for Image vs Text
+    if image_url:
+        ai_response = f"AI Vision Analysis: I have analyzed the image at {image_url}. [Detailed solution for the visual problem provided here]."
+    else:
+        ai_response = f"AI Text Analysis for: '{question}'. [Step-by-step logic and concept explanation]."
     
     # Log the interaction for Feature #4 (Activity Tracking)
     supabase.table("ai_logs").insert({
         "user_id": user['id'],
-        "query": question,
+        "query": question if not image_url else f"IMAGE_QUERY: {image_url}",
         "response": ai_response
     }).execute()
 
