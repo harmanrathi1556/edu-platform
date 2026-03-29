@@ -14,11 +14,17 @@
         <p class="text-3xl mt-2">{{ total_users }}</p>
     </div>
 
-    <!-- Institutes -->
-    <div class="glass p-6 glow">
-        <h2 class="text-xl">🏫 Institutes</h2>
-        <p class="text-3xl mt-2">{{ total_institutes }}</p>
-    </div>
+   <!-- Institutes Section -->
+<div class="glass p-6 mt-6">
+    <h2 class="text-xl mb-4 text-purple-400">🏫 Institutes</h2>
+
+    {% for inst in institutes %}
+        <div class="flex justify-between border-b border-gray-700 py-2">
+            <span>{{ inst.name }}</span>
+            <span class="text-green-400">{{ inst.status }}</span>
+        </div>
+    {% endfor %}
+</div>
 
     <!-- Revenue -->
     <div class="glass p-6 glow">
