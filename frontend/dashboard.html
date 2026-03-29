@@ -2,99 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edu-AI | Dashboard</title>
+    <title>Edu-AI | Smart Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
-        .sidebar { background: rgba(255, 255, 255, 0.02); border-right: 1px solid rgba(255, 255, 255, 0.05); }
-        .stat-card { background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .stat-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
+        .stat-card:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.05); }
     </style>
 </head>
 <body class="flex min-h-screen">
 
-    <aside class="w-64 sidebar p-6 flex flex-col">
-        <div class="text-2xl font-bold mb-10 text-blue-500 tracking-tighter">EDU<span class="text-white">AI</span></div>
-        <nav class="space-y-4 flex-1">
-            <div onclick="location.reload()" class="p-3 bg-blue-600/20 text-blue-400 rounded-lg cursor-pointer font-bold">📊 Overview</div>
-            <div class="p-3 hover:bg-white/5 rounded-lg cursor-pointer transition text-gray-400">🏫 Institutes</div>
-            <div class="p-3 hover:bg-white/5 rounded-lg cursor-pointer transition text-gray-400">📚 Batches</div>
-            <div onclick="showPayment()" class="p-3 hover:bg-blue-500/20 border border-transparent hover:border-blue-500/50 rounded-lg cursor-pointer transition text-blue-400 font-bold">💳 Buy Course / Pay</div>
-            <div class="p-3 hover:bg-white/5 rounded-lg cursor-pointer transition text-gray-400">🤖 AI Doubt Solver</div>
+    <aside class="w-64 bg-black/50 border-r border-white/5 p-6 flex flex-col">
+        <div class="text-2xl font-bold mb-10 text-blue-500">EDU-AI</div>
+        <nav class="space-y-2 flex-1">
+            <div onclick="location.reload()" class="p-3 bg-blue-600 rounded-lg cursor-pointer">Overview</div>
+            <div onclick="showSection('institutes')" class="p-3 hover:bg-white/5 rounded-lg cursor-pointer">Institutes</div>
+            <div onclick="showSection('batches')" class="p-3 hover:bg-white/5 rounded-lg cursor-pointer">Batches</div>
+            <div onclick="showPayment()" class="p-3 text-yellow-500 font-bold cursor-pointer">💳 Pay / Buy</div>
         </nav>
-        <div class="mt-auto p-4 glass rounded-xl text-sm border border-yellow-500/20">
-            <p class="text-gray-400">Current Rank</p>
-            <p id="userLevel" class="text-xl font-bold text-yellow-500">Lvl 1 - Rookie</p>
-        </div>
     </aside>
 
     <main class="flex-1 p-10">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-bold tracking-tight">System Overview</h1>
-            <div class="flex items-center gap-4">
-                <div class="text-right">
-                    <p class="font-bold" id="userNameDisplay">Harman Rathi</p>
-                    <p class="text-xs text-blue-400">Super Admin</p>
+        <div id="overview-section">
+            <h1 class="text-3xl font-bold mb-8">Welcome, <span id="userNameDisplay">User</span></h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="stat-card p-6 rounded-2xl">
+                    <p class="text-gray-400">Total Users</p>
+                    <p id="totalUsers" class="text-3xl font-bold">0</p>
                 </div>
-                <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-full border-2 border-white/10"></div>
+                <div class="stat-card p-6 rounded-2xl">
+                    <p class="text-gray-400">Revenue</p>
+                    <p id="totalRevenue" class="text-3xl font-bold text-green-400">₹0</p>
+                </div>
+                <div class="stat-card p-6 rounded-2xl">
+                    <p class="text-gray-400">Your XP</p>
+                    <p id="userXP" class="text-3xl font-bold text-yellow-500">0</p>
+                </div>
             </div>
-        </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-            <div class="stat-card p-6 rounded-2xl">
-                <p class="text-gray-400 text-sm">Total Revenue</p>
-                <p id="totalRevenue" class="text-2xl font-black text-green-400">₹0.00</p>
-            </div>
-            <div class="stat-card p-6 rounded-2xl">
-                <p class="text-gray-400 text-sm">Total Students</p>
-                <p id="totalUsers" class="text-2xl font-black">0</p>
-            </div>
-            <div class="stat-card p-6 rounded-2xl">
-                <p class="text-gray-400 text-sm">Active Exams</p>
-                <p class="text-2xl font-black text-blue-400">0</p>
-            </div>
-            <div class="stat-card p-6 rounded-2xl border-yellow-500/30">
-                <p class="text-yellow-500 text-sm">Global XP</p>
-                <p id="userXP" class="text-2xl font-black text-yellow-500">0 XP</p>
-            </div>
-        </div>
-
-        <div class="stat-card p-8 rounded-3xl border border-blue-500/20">
-            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                <span>🤖</span> AI Doubt Solver
-            </h2>
-            <div class="flex gap-4">
-                <input id="aiQuestion" type="text" placeholder="Ask a physics/math question..." 
-                       class="flex-1 bg-white/5 border border-white/10 p-4 rounded-xl focus:outline-none focus:border-blue-500 text-white">
-                <button onclick="askAI()" class="bg-blue-600 px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/20">
-                    Solve Now
-                </button>
-            </div>
-            <div id="aiResponse" class="mt-6 p-6 bg-blue-900/10 border border-blue-500/10 rounded-2xl hidden text-blue-100 leading-relaxed">
+            <div class="glass p-8 rounded-3xl">
+                <h2 class="text-2xl font-bold mb-4">🤖 AI Doubt Solver</h2>
+                <div class="flex flex-col gap-4">
+                    <textarea id="aiQuestion" placeholder="Type your doubt here..." class="w-full bg-white/5 p-4 rounded-xl border border-white/10 h-32"></textarea>
+                    
+                    <div class="flex items-center gap-4">
+                        <label class="cursor-pointer bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20">
+                            📷 Add Image
+                            <input type="file" id="aiImage" class="hidden" onchange="alert('Image attached!')">
+                        </label>
+                        <button onclick="askAI()" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold hover:bg-blue-700">Solve with AI</button>
+                    </div>
+                </div>
+                <div id="aiResponse" class="mt-6 p-6 bg-blue-500/10 rounded-2xl hidden border border-blue-500/20"></div>
             </div>
         </div>
     </main>
 
-    <div id="paymentModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl hidden flex items-center justify-center p-6 z-50">
-        <div class="glass p-8 rounded-3xl w-full max-w-lg border border-white/10 relative">
-            <button onclick="hidePayment()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">✕</button>
-            <h2 class="text-3xl font-bold mb-2">QR Payment</h2>
-            <p class="text-gray-400 mb-6 text-sm">Scan, pay via UPI, and upload screenshot link.</p>
-            <div class="flex justify-center mb-6 p-4 bg-white rounded-2xl">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY_HARMAN_RATHI" alt="QR" class="w-40 h-40">
+    <div id="paymentModal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-6 z-50">
+        <div class="glass p-8 rounded-3xl w-full max-w-md relative">
+            <button onclick="hidePayment()" class="absolute top-4 right-4 text-2xl">✕</button>
+            <h2 class="text-2xl font-bold mb-4">Payment Portal</h2>
+            
+            <div class="border-2 border-dashed border-white/20 rounded-2xl p-4 mb-6 text-center">
+                <p class="text-xs text-gray-400 mb-2 font-bold">YOUR QR CODE GOES HERE</p>
+                <img id="myQR" src="https://via.placeholder.com/200?text=Upload+Your+QR+to+GitHub" class="w-40 h-40 mx-auto rounded-lg">
             </div>
-            <div class="space-y-4">
-                <input id="payAmount" type="number" placeholder="Amount (INR)" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white">
-                <input id="qrUrl" type="text" placeholder="Screenshot Link (e.g. imgbb.com link)" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white">
-                <select id="selectedBatch" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-gray-300">
-                    <option value="batch_jee_2026">JEE Star Batch</option>
-                    <option value="batch_neet_2026">NEET Pro Batch</option>
-                </select>
-                <input id="couponCode" type="text" placeholder="Coupon Code (Optional)" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white">
-                <button id="paySubmitBtn" onclick="submitPayment()" class="w-full bg-blue-600 py-4 rounded-2xl font-black text-lg hover:bg-blue-700 transition">
-                    Submit Payment
-                </button>
-            </div>
+
+            <input id="payAmount" type="number" placeholder="Amount" class="w-full bg-white/5 p-4 rounded-xl mb-4">
+            <input id="qrUrl" type="text" placeholder="Paste Screenshot Link" class="w-full bg-white/5 p-4 rounded-xl mb-6">
+            <button onclick="submitPayment()" class="w-full bg-blue-600 py-4 rounded-xl font-bold">Submit Payment</button>
         </div>
     </div>
 
