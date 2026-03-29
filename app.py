@@ -83,11 +83,31 @@ def login_page():
 
 @app.route("/ask-ai", methods=["POST"])
 def ask_ai():
-    question = request.form.get("question")
+    try:
+        print("AI ROUTE HIT")
 
-    answer = solve_doubt(question)
+        # Try JSON first
+        data = request.get_json(silent=True)
 
-    return jsonify({"answer": answer})
+        if data:
+            question = data.get("question")
+        else:
+            question = request.form.get("question")
+
+        print("QUESTION:", question)
+
+        if not question:
+            return jsonify({"answer": "Please enter a question"})
+
+        answer = solve_doubt(question)
+
+        print("ANSWER:", answer)
+
+        return jsonify({"answer": answer})
+
+    except Exception as e:
+        print("ERROR:", str(e))
+        return jsonify({"answer": f"Server Error: {str(e)}"})
 
 # =========================
 # 🔐 LOGIN LOGIC
