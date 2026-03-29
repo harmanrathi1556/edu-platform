@@ -2,41 +2,112 @@
 
 {% block content %}
 
-<h1 class="text-3xl font-bold text-cyan-400 mb-6">
-    ⚡ Super Admin Dashboard
-</h1>
+<div class="p-6">
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Title -->
+    <h1 class="text-3xl font-bold text-purple-400 mb-6">
+        ⚡ Super Admin Dashboard
+    </h1>
 
-    <!-- Total Users -->
-    <div class="glass p-6 glow">
-        <h2 class="text-xl">👥 Users</h2>
-        <p class="text-3xl mt-2">{{ total_users }}</p>
-    </div>
+    <!-- ========================= -->
+    <!-- 📊 STATS -->
+    <!-- ========================= -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-   <!-- Institutes Section -->
-<div class="glass p-6 mt-6">
-    <h2 class="text-xl mb-4 text-purple-400">🏫 Institutes</h2>
-
-    {% for inst in institutes %}
-        <div class="flex justify-between border-b border-gray-700 py-2">
-            <span>{{ inst.name }}</span>
-            <span class="text-green-400">{{ inst.status }}</span>
+        <!-- Users -->
+        <div class="glass p-6 text-center">
+            <h2 class="text-xl">👥 Users</h2>
+            <p class="text-3xl mt-2 text-purple-400">
+                {{ users | length if users else 0 }}
+            </p>
         </div>
-    {% endfor %}
-</div>
 
-    <!-- Revenue -->
-    <div class="glass p-6 glow">
-        <h2 class="text-xl">💰 Revenue</h2>
-        <p class="text-3xl mt-2">₹ {{ total_revenue }}</p>
+        <!-- Institutes -->
+        <div class="glass p-6 text-center">
+            <h2 class="text-xl">🏫 Institutes</h2>
+            <p class="text-3xl mt-2 text-purple-400">
+                {{ institutes | length if institutes else 0 }}
+            </p>
+        </div>
+
+        <!-- Revenue -->
+        <div class="glass p-6 text-center">
+            <h2 class="text-xl">💰 Revenue</h2>
+            <p class="text-3xl mt-2 text-purple-400">
+                ₹ {{ payments | length if payments else 0 }}
+            </p>
+        </div>
+
     </div>
 
-</div>
+    <!-- ========================= -->
+    <!-- 🏫 INSTITUTES -->
+    <!-- ========================= -->
+    <div class="glass p-6 mt-8">
+        <h2 class="text-xl mb-4 text-purple-400">🏫 Institutes</h2>
 
-<!-- Logout -->
-<div class="mt-8">
-    <a href="/logout" class="bg-red-500 px-4 py-2 rounded glow">Logout</a>
+        {% if institutes %}
+            {% for inst in institutes %}
+                <div class="flex justify-between border-b border-gray-700 py-2">
+                    <span>{{ inst.name }}</span>
+                    <span class="text-green-400">
+                        {{ inst.status if inst.status else "active" }}
+                    </span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-400">No institutes found</p>
+        {% endif %}
+    </div>
+
+    <!-- ========================= -->
+    <!-- 👥 USERS -->
+    <!-- ========================= -->
+    <div class="glass p-6 mt-8">
+        <h2 class="text-xl mb-4 text-purple-400">👥 Users</h2>
+
+        {% if users %}
+            {% for u in users %}
+                <div class="flex justify-between border-b border-gray-700 py-2">
+                    <span>{{ u.name }} ({{ u.email }})</span>
+                    <span class="text-blue-400">{{ u.role }}</span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-400">No users found</p>
+        {% endif %}
+    </div>
+
+    <!-- ========================= -->
+    <!-- 💳 PAYMENTS -->
+    <!-- ========================= -->
+    <div class="glass p-6 mt-8">
+        <h2 class="text-xl mb-4 text-purple-400">💳 Payments</h2>
+
+        {% if payments %}
+            {% for p in payments %}
+                <div class="flex justify-between border-b border-gray-700 py-2">
+                    <span>Student ID: {{ p.student_id }}</span>
+                    <span class="text-yellow-400">
+                        {{ p.status if p.status else "pending" }}
+                    </span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-400">No payments found</p>
+        {% endif %}
+    </div>
+
+    <!-- ========================= -->
+    <!-- 🚪 LOGOUT -->
+    <!-- ========================= -->
+    <div class="mt-8">
+        <a href="/logout"
+           class="bg-red-500 px-4 py-2 rounded glow hover:bg-red-600">
+            Logout
+        </a>
+    </div>
+
 </div>
 
 {% endblock %}
