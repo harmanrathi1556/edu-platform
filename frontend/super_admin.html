@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>God Mode | Super Admin | EDU-AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020205; color: white; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { border-right: 1px solid rgba(255, 255, 255, 0.05); background: #050508; }
+        .card-glow { transition: 0.3s; border: 1px solid rgba(59, 130, 246, 0.1); }
+        .card-glow:hover { border-color: #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.1); }
+        .status-online { color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <aside class="w-72 sidebar p-8 flex flex-col hidden lg:flex">
+        <div class="text-3xl font-black mb-12 tracking-tighter text-blue-500">GOD<span class="text-white">MODE</span></div>
+        <nav class="space-y-4 flex-1">
+            <div onclick="showTab('overview')" class="flex items-center gap-3 p-4 bg-blue-600/10 text-blue-400 rounded-2xl cursor-pointer font-bold">
+                <span>🌐</span> Global Overview
+            </div>
+            <div onclick="showTab('institutes')" class="flex items-center gap-3 p-4 hover:bg-white/5 rounded-2xl cursor-pointer transition text-gray-400">
+                <span>🏫</span> Manage Institutes
+            </div>
+            <div onclick="showTab('users')" class="flex items-center gap-3 p-4 hover:bg-white/5 rounded-2xl cursor-pointer transition text-gray-400">
+                <span>👥</span> All Users
+            </div>
+            <div onclick="showTab('payments')" class="flex items-center gap-3 p-4 hover:bg-white/5 rounded-2xl cursor-pointer transition text-gray-400">
+                <span>💰</span> Revenue & QR
+            </div>
+        </nav>
+        <div class="mt-auto p-4 glass rounded-2xl border-blue-500/20">
+            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">System Status</p>
+            <p class="text-sm font-bold status-online">● Backend Live (Render)</p>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-10 overflow-y-auto">
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-4xl font-black tracking-tight">Harman <span class="text-blue-500">Rathi</span></h1>
+                <p class="text-gray-500">Master Platform Controller</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="openCreateInst()" class="bg-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition">+ New Institute</button>
+            </div>
+        </header>
+
+        <div id="overview" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                <div class="glass p-8 rounded-[2rem] card-glow">
+                    <p class="text-gray-500 text-xs font-bold uppercase">Total Revenue</p>
+                    <p id="globalRevenue" class="text-4xl font-black mt-2 text-green-400">₹0</p>
+                </div>
+                <div class="glass p-8 rounded-[2rem] card-glow">
+                    <p class="text-gray-500 text-xs font-bold uppercase">Total Institutes</p>
+                    <p id="totalInst" class="text-4xl font-black mt-2">0</p>
+                </div>
+                <div class="glass p-8 rounded-[2rem] card-glow text-blue-400">
+                    <p class="text-blue-500 text-xs font-bold uppercase">Total Students</p>
+                    <p id="globalStudents" class="text-4xl font-black mt-2">0</p>
+                </div>
+                <div class="glass p-8 rounded-[2rem] card-glow">
+                    <p class="text-gray-500 text-xs font-bold uppercase">Pending Appr.</p>
+                    <p id="pendingCount" class="text-4xl font-black mt-2 text-yellow-500">0</p>
+                </div>
+            </div>
+
+            <div class="glass p-10 rounded-[2.5rem]">
+                <h2 class="text-2xl font-black mb-8">Active Institutes</h2>
+                <div id="instituteList" class="space-y-4">
+                    <p class="text-gray-600 italic">No institutes registered yet...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="createInstModal" class="fixed inset-0 bg-black/95 backdrop-blur-xl hidden flex items-center justify-center z-50 p-6">
+        <div class="glass p-10 rounded-[3rem] w-full max-w-xl border-white/10">
+            <h2 class="text-3xl font-black mb-2 text-blue-500">Create Institute</h2>
+            <p class="text-gray-500 mb-8">Deploy a new automated educational branch.</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <input id="instName" type="text" placeholder="Institute Name" class="col-span-2 bg-white/5 p-5 rounded-2xl outline-none border border-white/10 focus:border-blue-500">
+                <input id="instAdminEmail" type="email" placeholder="Admin Email" class="bg-white/5 p-5 rounded-2xl outline-none border border-white/10">
+                <input id="instPass" type="password" placeholder="Set Admin Password" class="bg-white/5 p-5 rounded-2xl outline-none border border-white/10">
+            </div>
+
+            <div class="space-y-4 mb-8">
+                <p class="text-xs font-bold text-gray-400 uppercase">Enable Features</p>
+                <div class="flex gap-4">
+                    <label class="flex-1 glass p-4 rounded-xl text-center cursor-pointer hover:bg-blue-500/10"><input type="checkbox" checked> AI Proctor</label>
+                    <label class="flex-1 glass p-4 rounded-xl text-center cursor-pointer hover:bg-blue-500/10"><input type="checkbox" checked> AI Doubt</label>
+                    <label class="flex-1 glass p-4 rounded-xl text-center cursor-pointer hover:bg-blue-500/10"><input type="checkbox" checked> Gamification</label>
+                </div>
+            </div>
+
+            <button onclick="handleCreateInst()" class="w-full bg-blue-600 py-5 rounded-2xl font-black text-xl shadow-lg shadow-blue-500/20">Initialize Institute</button>
+            <button onclick="closeCreateInst()" class="w-full mt-4 text-gray-500 hover:text-white">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://edu-platform-sqty.onrender.com";
+        const TOKEN = localStorage.getItem("token");
+
+        // --- NAVIGATION ---
+        function showTab(tab) {
+            console.log("Switching to: " + tab);
+            // Logic to fetch specific data for users/payments will go here
+        }
+
+        function openCreateInst() { document.getElementById('createInstModal').classList.remove('hidden'); }
+        function closeCreateInst() { document.getElementById('createInstModal').classList.add('hidden'); }
+
+        // --- FEATURE #3: CREATE INSTITUTE ---
+        async function handleCreateInst() {
+            const name = document.getElementById('instName').value;
+            const email = document.getElementById('instAdminEmail').value;
+            if(!name || !email) return alert("Fill all details");
+
+            // Logic to send to backend /create-institute route
+            alert("Deploying Institute: " + name);
+            closeCreateInst();
+        }
+
+        // --- FETCH GLOBAL STATS ---
+        async function loadGlobalStats() {
+            try {
+                const res = await fetch(`${BACKEND_URL}/admin/stats`, {
+                    headers: { "Authorization": `Bearer ${TOKEN}` }
+                });
+                const data = await res.json();
+                document.getElementById('globalRevenue').innerText = `₹${data.total_revenue}`;
+                document.getElementById('totalInst').innerText = data.active_institutes || 0;
+                document.getElementById('globalStudents').innerText = data.total_users;
+            } catch(e) { console.log("Waiting for backend..."); }
+        }
+
+        window.onload = loadGlobalStats;
+    </script>
+</body>
+</html>
