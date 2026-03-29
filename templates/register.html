@@ -1,137 +1,55 @@
 {% extends "base.html" %}
 
+{% block title %}Register - Harman Rathi Portal{% endblock %}
+
 {% block content %}
-
-<!-- Background Glow -->
-<div class="absolute inset-0 -z-10 overflow-hidden">
-    <div class="absolute w-72 h-72 bg-purple-500 opacity-20 rounded-full blur-3xl top-10 right-10 animate-pulse"></div>
-    <div class="absolute w-72 h-72 bg-cyan-500 opacity-20 rounded-full blur-3xl bottom-10 left-10 animate-pulse"></div>
-</div>
-
-<div class="flex items-center justify-center min-h-screen">
-
-    <!-- Register Card -->
-    <div class="glass glow p-10 w-full max-w-lg float">
-
-        <h2 class="text-3xl font-bold text-center text-cyan-400 mb-6">
-            🚀 Create Account
-        </h2>
-
-        <!-- Form -->
-        <form method="POST" action="/register" enctype="multipart/form-data" id="registerForm">
-
-            <!-- Name -->
-            <div class="mb-4">
-                <label class="block mb-1 text-sm">Full Name</label>
-                <input type="text" name="name" required
-                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none">
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="glass max-w-md w-full p-10 rounded-3xl glow-purple">
+        <div class="text-center mb-10">
+            <div class="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-600 rounded-3xl mx-auto mb-6 flex items-center justify-center glow-purple">
+                <i class="fas fa-user-plus text-3xl"></i>
             </div>
+            <h1 class="orbitron text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                Join Us
+            </h1>
+            <p class="opacity-75">Create your account</p>
+        </div>
 
-            <!-- Email -->
-            <div class="mb-4">
-                <label class="block mb-1 text-sm">Email</label>
-                <input type="email" name="email" required
-                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none">
+        <form method="POST" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium mb-3 text-white/90">Full Name</label>
+                <input type="text" name="full_name" required 
+                       class="w-full glass px-5 py-4 rounded-2xl focus:ring-4 focus:ring-purple-500/50 transition-all duration-300" 
+                       placeholder="John Doe">
             </div>
-
-            <!-- Password -->
-            <div class="mb-4 relative">
-                <label class="block mb-1 text-sm">Password</label>
-                <input type="password" name="password" id="regPassword" required
-                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none">
-
-                <span onclick="togglePassword()"
-                    class="absolute right-3 top-10 cursor-pointer text-gray-400 hover:text-cyan-400">
-                    👁
-                </span>
+            
+            <div>
+                <label class="block text-sm font-medium mb-3 text-white/90">Email</label>
+                <input type="email" name="email" required 
+                       class="w-full glass px-5 py-4 rounded-2xl focus:ring-4 focus:ring-purple-500/50 transition-all duration-300" 
+                       placeholder="student@school.com">
             </div>
-
-            <!-- Role -->
-            <div class="mb-4">
-                <label class="block mb-2 text-sm">Register As</label>
-                <select name="role" id="roleSelect"
-                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none">
-                    
-                    <option value="student">🎓 Student</option>
-                    <option value="teacher">👨‍🏫 Teacher</option>
-                    <option value="admin">🏫 Institute Admin</option>
-
-                </select>
+            
+            <div>
+                <label class="block text-sm font-medium mb-3 text-white/90">Password</label>
+                <input type="password" name="password" required minlength="6"
+                       class="w-full glass px-5 py-4 rounded-2xl focus:ring-4 focus:ring-purple-500/50 transition-all duration-300" 
+                       placeholder="••••••••">
             </div>
-
-            <!-- Institute -->
-            <div class="mb-4">
-                <label class="block mb-1 text-sm">Institute Name</label>
-                <input type="text" name="institute"
-                    placeholder="Enter or create institute"
-                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none">
-            </div>
-
-            <!-- Payment Upload (Dynamic) -->
-            <div class="mb-6" id="paymentSection">
-                <label class="block mb-2 text-sm">Upload Payment Screenshot</label>
-                <input type="file" name="payment" id="paymentInput"
-                    class="w-full p-2 bg-gray-900 border border-gray-700 rounded">
-
-                <!-- Preview -->
-                <img id="preview" class="mt-3 hidden rounded border border-gray-700" />
-            </div>
-
-            <!-- Button -->
-            <button type="submit" id="registerBtn"
-                class="w-full bg-purple-500 hover:bg-purple-400 p-3 rounded font-bold transition glow">
-                Register
+            
+            <button type="submit" 
+                    class="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-2xl glow-purple transform hover:scale-[1.02] transition-all duration-300">
+                <i class="fas fa-user-plus mr-2"></i>
+                Create Account
             </button>
-
         </form>
 
-        <!-- Footer -->
-        <p class="text-center mt-4 text-sm text-gray-400">
-            Already have an account?
-            <a href="/login" class="text-cyan-400 hover:underline">Login</a>
-        </p>
-
+        <div class="mt-8 text-center">
+            <p class="text-sm opacity-75">
+                Already have account? 
+                <a href="{{ url_for('auth.login') }}" class="text-purple-400 hover:text-purple-300 font-semibold">Sign in</a>
+            </p>
+        </div>
     </div>
-
 </div>
-
-<!-- JS -->
-<script>
-    function togglePassword() {
-        const pass = document.getElementById("regPassword");
-        pass.type = pass.type === "password" ? "text" : "password";
-    }
-
-    // Role-based UI change
-    const roleSelect = document.getElementById("roleSelect");
-    const paymentSection = document.getElementById("paymentSection");
-
-    roleSelect.addEventListener("change", function () {
-        if (this.value === "student") {
-            paymentSection.style.display = "block";
-        } else {
-            paymentSection.style.display = "none";
-        }
-    });
-
-    // File preview
-    const input = document.getElementById("paymentInput");
-    const preview = document.getElementById("preview");
-
-    input.addEventListener("change", function () {
-        const file = this.files[0];
-        if (file) {
-            preview.src = URL.createObjectURL(file);
-            preview.classList.remove("hidden");
-        }
-    });
-
-    // Loading animation
-    document.getElementById("registerForm").addEventListener("submit", function () {
-        const btn = document.getElementById("registerBtn");
-        btn.innerText = "Creating...";
-        btn.disabled = true;
-    });
-</script>
-
 {% endblock %}
