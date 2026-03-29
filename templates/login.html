@@ -1,1 +1,63 @@
+{% extends "base.html" %}
 
+{% block content %}
+
+<div class="flex items-center justify-center min-h-screen">
+
+    <!-- Login Card -->
+    <div class="glass glow p-10 w-full max-w-md float">
+
+        <h2 class="text-3xl font-bold text-center text-cyan-400 mb-6">
+            🔐 Login Portal
+        </h2>
+
+        <!-- Form -->
+        <form method="POST" action="/login">
+
+            <!-- Email -->
+            <div class="mb-4">
+                <label class="block mb-1 text-sm">Email</label>
+                <input type="email" name="email" required
+                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none transition">
+            </div>
+
+            <!-- Password -->
+            <div class="mb-4">
+                <label class="block mb-1 text-sm">Password</label>
+                <input type="password" name="password" required
+                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none transition">
+            </div>
+
+            <!-- Role Selection -->
+            <div class="mb-6">
+                <label class="block mb-2 text-sm">Login As</label>
+                <select name="role"
+                    class="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:border-cyan-400 outline-none">
+                    
+                    <option value="student">🎓 Student</option>
+                    <option value="teacher">👨‍🏫 Teacher</option>
+                    <option value="admin">🏫 Institute Admin</option>
+                    <option value="superadmin">⚡ Super Admin</option>
+
+                </select>
+            </div>
+
+            <!-- Button -->
+            <button type="submit"
+                class="w-full bg-cyan-500 hover:bg-cyan-400 p-3 rounded font-bold transition glow">
+                Login
+            </button>
+
+        </form>
+
+        <!-- Footer -->
+        <p class="text-center mt-4 text-sm text-gray-400">
+            Don't have an account?
+            <a href="/register" class="text-cyan-400 hover:underline">Register</a>
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}
